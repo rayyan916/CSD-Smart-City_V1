@@ -1,0 +1,435 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香港智慧城市規劃</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --btn-hover: #004494;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft JhengHei';
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin: 20px;
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        /* Login Screen */
+        #login-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        input[type="text"] {
+            width: 80%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background-color: var(--btn-hover);
+        }
+
+        /* Game Screen */
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .scenario-card {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .scenario-title {
+            font-size: 20px;
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .info-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .info-box.advantage {
+            border-left-color: #28a745;
+        }
+
+        .info-box.obstacle {
+            border-left-color: #dc3545;
+        }
+
+        #log-container {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f1f3f5;
+            border-radius: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+
+        /* Result Screen */
+        #result-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        @media (max-width: 480px) {
+            .stats-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .stat-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .stat-icon {
+                display: inline;
+                margin-bottom: 0;
+                margin-right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1 id="main-title">香港智慧城市規劃</h1>
+    </div>
+    
+    <!-- Login Screen -->
+    <div id="login-screen" class="content">
+        <h2>歡迎來到城市規劃局</h2>
+        <p>這是一個決定香港未來的模擬遊戲。你將擔任首席規劃師，平衡各方利益，帶領城市進行智慧轉型。</p>
+        <p><strong>遊戲目標：</strong><br>了解香港發展智慧城市的優勢與障礙，在民意與預算耗盡前，盡可能提升城市的「智慧指數」。</p>
+        <input type="text" id="playerName" placeholder="請輸入你的姓名 (例如: 陳大文)" autocomplete="off">
+        <button onclick="startGame()">進入遊戲</button>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="content" style="display: none;">
+        <h3 style="margin-top:0;">規劃師：<span id="mayorName"></span></h3>
+        <div class="stats-bar">
+            <div class="stat-item"><span class="stat-icon">💰</span>預算: <span id="budget">100</span>M</div>
+            <div class="stat-item"><span class="stat-icon">❤️</span>市民信任: <span id="trust">80</span>%</div>
+            <div class="stat-item"><span class="stat-icon">🏙️</span>智慧指數: <span id="smart">0</span></div>
+        </div>
+
+        <div class="scenario-card">
+            <h3 class="scenario-title" id="scenario-title">載入中...</h3>
+            <p id="scenario-desc">正在讀取市政報告...</p>
+            
+            <div class="info-box advantage">
+                <strong>💡 本港優勢：</strong> <span id="scenario-adv"></span>
+            </div>
+            <div class="info-box obstacle">
+                <strong>⚠️ 面對障礙：</strong> <span id="scenario-obs"></span>
+            </div>
+
+            <div id="choices" style="margin-top: 20px;">
+                <!-- Buttons will be generated here -->
+            </div>
+        </div>
+
+        <div id="log-container">
+            <strong>📝 決策紀錄：</strong>
+            <div id="log"></div>
+        </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="content" style="display: none;">
+        <div id="result-msg"></div>
+        <button onclick="location.reload()" style="margin-top: 20px;">重新開始遊戲</button>
+    </div>
+</div>
+
+<script>
+    // Game State
+    let player = "";
+    let budget = 100;
+    let trust = 80;
+    let smart = 0;
+    let currentTurn = 0;
+
+    // Scenarios based on HK Smart City Data & Uploaded PDF
+    const scenarios = [
+        {
+            title: "項目一：全面推行多功能智慧燈柱",
+            description: "政府計劃在全港人流車流較多的地點安裝數百支多功能智慧燈柱，配合5G網絡實時收集空氣質素及交通數據，以建立實體城市的虛擬分身（數字孿生城市）。",
+            advantages: "香港擁有高速 5G 全面覆蓋，具備先進的智慧基礎建設，能為城市管理提供重要數據依據。",
+            obstacles: "市民對數據隱私和安全存有疑慮，擔心燈柱的監控攝像頭會收集個人行蹤，引發社會抗議。",
+            choices: [
+                {
+                    text: "效率優先：強制安裝並啟動所有感測器",
+                    effect: { budget: -15, trust: -30, smart: +30 },
+                    message: "強推計劃雖然迅速提升了智慧管理效率，但漠視市民的安全疑慮，導致公眾強烈反彈，市民信任度大幅下降。"
+                },
+                {
+                    text: "透明度優先：舉辦公眾諮詢，暫緩人臉識別功能",
+                    effect: { budget: -25, trust: +10, smart: +15 },
+                    message: "透過公開透明的溝通，釋除了市民對監控的憂慮。雖然花費了更多時間和預算，但成功獲得市民支持。"
+                }
+            ]
+        },
+        {
+            title: "項目二：公共服務全面數碼化（智方便）",
+            description: "政府期望在年底前全面採用「智方便」，實現「一網通辦」目標。市民需透過智能手機進行電子身分認證來處理各項政府申請。",
+            advantages: "政府牽頭推動公共服務智慧化，能大幅提升服務效率，並將智慧生活引入市民日常模式。",
+            obstacles: "社會存在「數碼鴻溝」，部分長者或低收入人士缺乏智能設備及數碼技能，對數碼轉型適應滯後。",
+            choices: [
+                {
+                    text: "設立過渡期及關愛基金，派員教導長者使用",
+                    effect: { budget: -30, trust: +20, smart: +20 },
+                    message: "你照顧了弱勢社群的需要，幫助長者跨越數碼鴻溝，政策推行順利且大受好評！"
+                },
+                {
+                    text: "一刀切全面取消紙本申請，節省行政成本",
+                    effect: { budget: +10, trust: -35, smart: +25 },
+                    message: "行政成本下降了，但大批長者因無法適應而求助無門，引發嚴重的社會抱怨，政策被批「離地」。"
+                }
+            ]
+        },
+        {
+            title: "項目三：推展電子健康紀錄（醫健通）大數據分析",
+            description: "為應對人口老化，醫管局提議整合全港市民的電子健康紀錄（醫健通），利用人工智能分析大數據，以預測疾病趨勢及優化醫療資源。",
+            advantages: "大數據具有海量（Volume）及即時性（Velocity）特徵，AI 模型能協助醫療系統作更合適決策。",
+            obstacles: "調查顯示超過一半受訪者擔心數據庫的安全度，害怕健康信息被黑客入侵或作未經授權的第三方訪問。",
+            choices: [
+                {
+                    text: "引入最新區塊鏈加密技術，並賦予市民數據授權決定權",
+                    effect: { budget: -35, trust: +15, smart: +25 },
+                    message: "高規格的網絡安全措施以及市民的自主權，成功化解了隱私危機，系統順利運作。"
+                },
+                {
+                    text: "將系統外判給收費最便宜的海外雲端服務商",
+                    effect: { budget: -5, trust: -45, smart: +10 },
+                    message: "不久後發生數據洩露事件！市民健康私隱外洩，市民對政府的信任度跌至冰點！"
+                }
+            ]
+        },
+        {
+            title: "項目四：智慧出行與智能交通管理",
+            description: "政府計劃利用大數據開發交通數據分析系統，全面推行收費隧道不停車繳費系統，並要求駕駛者開放 GPS 定位以提供實時路況。",
+            advantages: "日常公共交通運輸系統已十分完善，進一步結合數據分析能徹底解決交通擠塞問題。",
+            obstacles: "部分駕駛者不願提供個人移動數據，擔心行蹤被政府長期記錄。",
+            choices: [
+                {
+                    text: "推行獎勵計劃：提供行車數據者可獲免隧道費優惠",
+                    effect: { budget: -20, trust: +15, smart: +20 },
+                    message: "利用經濟誘因成功鼓勵了市民參與，智慧交通系統獲得足夠數據進行精準運作。"
+                },
+                {
+                    text: "立法強制全港車輛安裝並上傳 GPS 數據",
+                    effect: { budget: -10, trust: -30, smart: +25 },
+                    message: "高壓立法引發司法覆核挑戰與社會爭議，雖然系統建成，但警民關係變得緊張。"
+                }
+            ]
+        }
+    ];
+
+    function startGame() {
+        player = document.getElementById("playerName").value.trim();
+        if(!player) { 
+            alert("請輸入你的姓名才能開始規劃！"); 
+            return; 
+        }
+        document.getElementById("login-screen").style.display = "none";
+        document.getElementById("game-screen").style.display = "block";
+        document.getElementById("mayorName").innerText = player;
+        updateStats();
+        loadScenario();
+    }
+
+    function updateStats() {
+        // UI color hints
+        document.getElementById("budget").innerText = budget;
+        document.getElementById("budget").style.color = budget < 30 ? "red" : "black";
+        
+        document.getElementById("trust").innerText = trust;
+        document.getElementById("trust").style.color = trust < 40 ? "red" : "black";
+        
+        document.getElementById("smart").innerText = smart;
+        document.getElementById("smart").style.color = "var(--primary-color)";
+    }
+
+    function loadScenario() {
+        if(currentTurn >= scenarios.length) {
+            endGame(true);
+            return;
+        }
+        // Check failure conditions before next turn
+        if (trust <= 0) {
+            endGame(false, "市民對你的施政完全失去信心，引發大規模抗議，你被迫引咎辭職！");
+            return;
+        }
+        if (budget < 0) {
+            endGame(false, "政府預算嚴重超支，引發經濟危機，智慧城市計劃被迫全面終止！");
+            return;
+        }
+
+        let s = scenarios[currentTurn];
+        document.getElementById("scenario-title").innerText = s.title;
+        document.getElementById("scenario-desc").innerText = s.description;
+        document.getElementById("scenario-adv").innerText = s.advantages;
+        document.getElementById("scenario-obs").innerText = s.obstacles;
+
+        let btnContainer = document.getElementById("choices");
+        btnContainer.innerHTML = "";
+        
+        s.choices.forEach(choice => {
+            let btn = document.createElement("button");
+            btn.innerText = choice.text;
+            btn.onclick = () => makeChoice(choice, s.title);
+            btnContainer.appendChild(btn);
+        });
+    }
+
+    function makeChoice(choice, scenarioTitle) {
+        // Apply effects
+        budget += choice.effect.budget;
+        trust += choice.effect.trust;
+        smart += choice.effect.smart;
+        
+        // Prevent trust from exceeding 100%
+        if(trust > 100) trust = 100;
+        
+        // Add to Log
+        let logContainer = document.getElementById("log");
+        let newLog = document.createElement("p");
+        newLog.innerHTML = `<strong>${scenarioTitle}：</strong>${choice.message} <br><em>(預算 ${choice.effect.budget>0?'+':''}${choice.effect.budget}M, 信任 ${choice.effect.trust>0?'+':''}${choice.effect.trust}%, 智慧 ${choice.effect.smart>0?'+':''}${choice.effect.smart})</em>`;
+        newLog.style.borderBottom = "1px solid #ccc";
+        newLog.style.paddingBottom = "5px";
+        logContainer.prepend(newLog); // add to top
+        
+        currentTurn++;
+        updateStats();
+        
+        // Add a slight delay before loading next scenario for UX
+        setTimeout(() => {
+            if (trust <= 0) {
+                endGame(false, "市民對你的施政完全失去信心，引發大規模社會抗議，你被迫辭去職務！");
+            } else if (budget < 0) {
+                endGame(false, "政府預算嚴重超支，引發經濟危機，智慧城市計劃被迫全面終止！");
+            } else {
+                loadScenario();
+            }
+        }, 300);
+    }
+
+    function endGame(completed, reason="") {
+        document.getElementById("game-screen").style.display = "none";
+        document.getElementById("result-screen").style.display = "block";
+        
+        let res = document.getElementById("result-msg");
+        if(!completed) {
+            res.innerHTML = `<h2 style="color:#dc3545;">❌ 發展失敗</h2><p>${reason}</p><p>最終智慧指數：${smart}</p>`;
+        } else {
+            if(smart >= 80 && trust >= 50) {
+                res.innerHTML = `
+                    <h2 style="color:#28a745;">🏆 大獲成功！</h2>
+                    <p>恭喜 <strong>${player}</strong> 規劃師！你成功帶領香港邁向智慧城市，不僅大幅提升了城市效率，還贏得了市民的高度信任。</p>
+                    <p>最終市民信任：<strong>${trust}%</strong> | 最終智慧指數：<strong>${smart}</strong> | 剩餘預算：<strong>${budget}M</strong></p>
+                    <p>你精準地解決了私隱疑慮與數碼鴻溝等障礙，善用了香港的基建優勢！</p>
+                `;
+            } else if (trust >= 50) {
+                res.innerHTML = `
+                    <h2 style="color:#17a2b8;">✅ 穩步發展</h2>
+                    <p><strong>${player}</strong> 規劃師，香港的智慧城市發展取得了一定進展，市民生活亦得到改善。</p>
+                    <p>最終市民信任：<strong>${trust}%</strong> | 最終智慧指數：<strong>${smart}</strong></p>
+                    <p>雖然發展速度較為保守，但成功維繫了社會的和諧。</p>
+                `;
+            } else {
+                res.innerHTML = `
+                    <h2 style="color:#ffc107;">⚠️ 毀譽參半</h2>
+                    <p><strong>${player}</strong> 規劃師，雖然城市的科技水平大幅提升，但過程中忽視了市民感受。</p>
+                    <p>最終市民信任：<strong>${trust}%</strong> | 最終智慧指數：<strong>${smart}</strong></p>
+                    <p>在推動科技的同時，記得要妥善處理「數碼鴻溝」與「隱私安全」等障礙！</p>
+                `;
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
+```
