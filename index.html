@@ -1,435 +1,2653 @@
-```html
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>香港智慧城市規劃</title>
-    <style>
-        :root {
-            --primary-color: #0056b3;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --btn-hover: #004494;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Microsoft JhengHei';
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            overflow: hidden;
-            margin: 20px;
-        }
-
-        .header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-
-        .content {
-            padding: 20px;
-        }
-
-        /* Login Screen */
-        #login-screen {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        input[type="text"] {
-            width: 80%;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-        }
-
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        button:hover {
-            background-color: var(--btn-hover);
-        }
-
-        /* Game Screen */
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            background-color: #e9ecef;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-icon {
-            font-size: 24px;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .scenario-card {
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .scenario-title {
-            font-size: 20px;
-            color: var(--primary-color);
-            margin-top: 0;
-        }
-
-        .info-box {
-            background-color: #f8f9fa;
-            border-left: 4px solid #ffc107;
-            padding: 10px;
-            margin: 10px 0;
-            font-size: 14px;
-        }
-
-        .info-box.advantage {
-            border-left-color: #28a745;
-        }
-
-        .info-box.obstacle {
-            border-left-color: #dc3545;
-        }
-
-        #log-container {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f1f3f5;
-            border-radius: 8px;
-            max-height: 150px;
-            overflow-y: auto;
-            font-size: 14px;
-        }
-
-        /* Result Screen */
-        #result-screen {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        @media (max-width: 480px) {
-            .stats-bar {
-                flex-direction: column;
-                gap: 10px;
-            }
-            .stat-item {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            .stat-icon {
-                display: inline;
-                margin-bottom: 0;
-                margin-right: 10px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>香港智慧城市規劃 (HK Smart City Planner) — 3D 模擬決策遊戲</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-sans: 'Inter', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    body {
+      font-family: var(--font-sans);
+      background-color: #0b1120;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.4);
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(56, 189, 248, 0.7);
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.45); }
+      50% { box-shadow: 0 0 18px 4px rgba(56, 189, 248, 0.25); }
+    }
+    .glow-active {
+      animation: pulseGlow 2.4s infinite;
+    }
+    .zone-marker {
+      pointer-events: auto;
+      transform: translate(-50%, -100%);
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+    .zone-marker:hover {
+      transform: translate(-50%, -108%) scale(1.08);
+      z-index: 30;
+    }
+    canvas {
+      display: block;
+      outline: none;
+      touch-action: none;
+    }
+  </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-sky-500 selection:text-white">
 
-<div class="container">
-    <div class="header">
-        <h1 id="main-title">香港智慧城市規劃</h1>
-    </div>
-    
-    <!-- Login Screen -->
-    <div id="login-screen" class="content">
-        <h2>歡迎來到城市規劃局</h2>
-        <p>這是一個決定香港未來的模擬遊戲。你將擔任首席規劃師，平衡各方利益，帶領城市進行智慧轉型。</p>
-        <p><strong>遊戲目標：</strong><br>了解香港發展智慧城市的優勢與障礙，在民意與預算耗盡前，盡可能提升城市的「智慧指數」。</p>
-        <input type="text" id="playerName" placeholder="請輸入你的姓名 (例如: 陳大文)" autocomplete="off">
-        <button onclick="startGame()">進入遊戲</button>
-    </div>
+  <!-- 頂部導航列 -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 sm:px-5 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 font-black text-lg text-white">
+          HK
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">香港智慧城市規劃</h1>
+            <span class="hidden sm:inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30">
+              公民科導學案02・3D SimCity 決策版
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden md:block">
+            主題（三）互聯相依的當代世界：了解香港智慧城市發展的<span class="text-emerald-400 font-medium">優勢</span>與<span class="text-amber-400 font-medium">障礙</span>
+          </p>
+        </div>
+      </div>
 
-    <!-- Game Screen -->
-    <div id="game-screen" class="content" style="display: none;">
-        <h3 style="margin-top:0;">規劃師：<span id="mayorName"></span></h3>
-        <div class="stats-bar">
-            <div class="stat-item"><span class="stat-icon">💰</span>預算: <span id="budget">100</span>M</div>
-            <div class="stat-item"><span class="stat-icon">❤️</span>市民信任: <span id="trust">80</span>%</div>
-            <div class="stat-item"><span class="stat-icon">🏙️</span>智慧指數: <span id="smart">0</span></div>
+      <!-- 玩家資訊與頂部工具按鈕 -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button id="btnOpenProfile" type="button" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span id="navPlayerName">未登入規劃師</span>
+        </button>
+
+        <button id="btnToggleMobileHud" type="button" class="lg:hidden px-2.5 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-xs font-semibold text-sky-300 transition">
+          指標 <span id="mobileHudSummary" class="font-bold">46</span>
+        </button>
+
+        <button id="btnOpenGuideModal" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition">
+          玩法說明
+        </button>
+
+        <button id="btnToggleAudio" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition" title="切換音效">
+          <span id="audioIconText">🔊 音效</span>
+        </button>
+
+        <button id="btnResetGame" type="button" class="px-2.5 py-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-xs font-medium text-rose-300 transition">
+          重設
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 頂部城市核心指標儀表板 (支援手機摺疊、平板與電腦常駐) -->
+  <section id="hudMetricsBar" class="bg-slate-900/75 border-b border-slate-800/80 px-3 sm:px-5 py-2.5 transition-all">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+        <!-- 智慧基建度 -->
+        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">📡 智慧基建度</span>
+            <span id="valInfra" class="font-bold text-sky-400">45/100</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mt-1.5">
+            <div id="barInfra" class="h-full bg-gradient-to-r from-sky-500 to-cyan-400 transition-all duration-500" style="width: 45%"></div>
+          </div>
+          <span class="text-[10px] text-slate-500 mt-1">5G覆蓋90%+ / IoT / 超算中心</span>
         </div>
 
-        <div class="scenario-card">
-            <h3 class="scenario-title" id="scenario-title">載入中...</h3>
-            <p id="scenario-desc">正在讀取市政報告...</p>
-            
-            <div class="info-box advantage">
-                <strong>💡 本港優勢：</strong> <span id="scenario-adv"></span>
-            </div>
-            <div class="info-box obstacle">
-                <strong>⚠️ 面對障礙：</strong> <span id="scenario-obs"></span>
-            </div>
-
-            <div id="choices" style="margin-top: 20px;">
-                <!-- Buttons will be generated here -->
-            </div>
+        <!-- 市民信任與私隱 -->
+        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">🛡️ 市民信任與私隱</span>
+            <span id="valTrust" class="font-bold text-emerald-400">48/100</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mt-1.5">
+            <div id="barTrust" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500" style="width: 48%"></div>
+          </div>
+          <span class="text-[10px] text-slate-500 mt-1">消除62%監控憂慮与外洩風險</span>
         </div>
 
-        <div id="log-container">
-            <strong>📝 決策紀錄：</strong>
-            <div id="log"></div>
+        <!-- 社會適應與共融 -->
+        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">🤝 社會適應與共融</span>
+            <span id="valInclusion" class="font-bold text-amber-400">40/100</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mt-1.5">
+            <div id="barInclusion" class="h-full bg-gradient-to-r from-amber-500 to-yellow-400 transition-all duration-500" style="width: 40%"></div>
+          </div>
+          <span class="text-[10px] text-slate-500 mt-1">改善長者50%欠自信及數碼鴻溝</span>
         </div>
+
+        <!-- 創科經濟與治理 -->
+        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">🚀 創科經濟與治理</span>
+            <span id="valEconomy" class="font-bold text-purple-400">50/100</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mt-1.5">
+            <div id="barEconomy" class="h-full bg-gradient-to-r from-purple-500 to-pink-400 transition-all duration-500" style="width: 50%"></div>
+          </div>
+          <span class="text-[10px] text-slate-500 mt-1">一網通辦 / 開放數據 / 留港消費</span>
+        </div>
+
+        <!-- 市政創科預算 -->
+        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-medium">💰 創科財政儲備</span>
+            <span id="valBudget" class="font-bold text-yellow-300">120 億</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] mt-1.5 text-slate-300">
+            <span>活躍用戶率：<strong id="valActiveUsers" class="text-sky-300">20%</strong></span>
+            <span>進度：<strong id="valRoundProgress" class="text-white">1/8</strong></span>
+          </div>
+          <span class="text-[10px] text-slate-500 mt-0.5">公民科概念得分：<strong id="valQuizScore" class="text-emerald-400">0</strong> 分</span>
+        </div>
+
+        <!-- 綜合智慧城市指數 -->
+        <div class="bg-gradient-to-br from-sky-950/90 to-indigo-950/90 border border-sky-500/40 rounded-xl p-2.5 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-sky-200 font-semibold">🏆 智慧城市總指數</span>
+            <span id="valTotalIndex" class="text-base font-black text-white">46</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] mt-1 text-sky-200">
+            <span>國際排名模擬：</span>
+            <span id="valRankSimulated" class="font-bold text-amber-300">第 41 位 (IMD)</span>
+          </div>
+          <span id="valCityStatusTag" class="text-[10px] text-sky-300/90 mt-0.5 truncate">基建領先・市民適應待提升</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 主體響應式雙欄佈局 (電腦/平板左右分欄 md:grid-cols-12, 手機上下堆疊) -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-5 py-3 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+
+    <!-- 左欄：3D 香港智慧城市互動視窗 + 地塊檢視器 + 沙盒建設列 (lg:col-span-7) -->
+    <div class="lg:col-span-7 flex flex-col gap-3 w-full">
+
+      <!-- 3D 城市畫布容器 -->
+      <div class="relative w-full h-[320px] sm:h-[410px] lg:h-[470px] rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl">
+        <!-- Three.js Canvas 掛載點 -->
+        <div id="cityCanvasContainer" class="w-full h-full relative"></div>
+
+        <!-- 3D 地標 HTML 浮動標籤層 -->
+        <div id="zoneLabelsOverlay" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+
+        <!-- 左上：視角與數字孿生模式切換 -->
+        <div class="absolute top-3 left-3 z-20 flex flex-wrap items-center gap-1.5">
+          <button id="btnToggleDigitalTwin" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-900/90 hover:bg-sky-900/80 border border-sky-500/40 text-xs font-semibold text-sky-300 backdrop-blur-md transition flex items-center gap-1.5 shadow">
+            <span id="twinDot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+            <span>數字孿生城市 (Digital Twin)</span>
+          </button>
+          <button id="btnToggleDayNight" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-xs font-medium text-slate-200 backdrop-blur-md transition shadow">
+            <span id="dayNightText">🌙 維港夜景</span>
+          </button>
+        </div>
+
+        <!-- 右上：鏡頭控制按鈕 -->
+        <div class="absolute top-3 right-3 z-20 flex items-center gap-1">
+          <button id="btnCamOverview" type="button" class="px-2 py-1 rounded-lg bg-slate-900/85 hover:bg-slate-800 border border-slate-700 text-[11px] text-slate-200 backdrop-blur-md transition" title="全景視角">
+            全景
+          </button>
+          <button id="btnCamZoomIn" type="button" class="w-7 h-7 rounded-lg bg-slate-900/85 hover:bg-slate-800 border border-slate-700 text-sm font-bold text-slate-200 backdrop-blur-md transition flex items-center justify-center" title="放大">
+            +
+          </button>
+          <button id="btnCamZoomOut" type="button" class="w-7 h-7 rounded-lg bg-slate-900/85 hover:bg-slate-800 border border-slate-700 text-sm font-bold text-slate-200 backdrop-blur-md transition flex items-center justify-center" title="縮小">
+            −
+          </button>
+        </div>
+
+        <!-- 數字孿生城市 (Digital Twin) 數據流浮層 -->
+        <div id="digitalTwinBanner" class="hidden absolute bottom-14 left-3 right-3 z-20 bg-sky-950/90 border border-sky-400/50 rounded-xl p-2.5 backdrop-blur-md text-xs text-sky-100 shadow-lg">
+          <div class="flex items-center justify-between font-bold text-sky-300 mb-1">
+            <span>🌐 數字孿生城市 (Digital Twin City) 虛擬分身運作中</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 border border-sky-400/30">大數據 4V 實時分析</span>
+          </div>
+          <p class="text-[11px] text-sky-100/90 leading-relaxed">
+            正在滙集<strong>人口、氣象、耗電、消費、出行</strong>等多元數據（Volume 量大、Variety 多樣、Velocity 即時、Veracity 真實）→ 進行<strong>精細化管理</strong>（有效分配資源、解決社會問題、啟發創新，如模擬每月 535 萬人次北上及 40 億元消費額流失趨勢）。
+          </p>
+        </div>
+
+        <!-- 底部：3D 操作提示與當前選中城區簡報 -->
+        <div class="absolute bottom-2.5 left-3 right-3 z-20 flex flex-wrap items-center justify-between gap-2 bg-slate-950/85 border border-slate-800/90 rounded-xl px-3 py-1.5 backdrop-blur-md text-xs">
+          <div class="flex items-center gap-2 truncate">
+            <span class="text-sky-400 font-bold">📍 選中地塊：</span>
+            <span id="selectedZoneTitle" class="font-semibold text-white truncate">中環及九龍東核心商業區</span>
+            <span id="selectedZoneLevelBadge" class="px-1.5 py-0.5 rounded text-[10px] bg-sky-500/20 text-sky-300 border border-sky-500/30">Lv.1 基礎</span>
+          </div>
+          <span class="text-[11px] text-slate-400 hidden sm:inline">🖱️ 拖曳旋轉 3D 城市・滾輪縮放・點擊地標檢視</span>
+        </div>
+      </div>
+
+      <!-- 選中 3D 城區詳細檢視器與 SimCity 自主增建工具列 -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 shadow-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-800">
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="inspectorCategoryBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                智慧政府 / 智慧基建
+              </span>
+              <h2 id="inspectorZoneName" class="text-sm sm:text-base font-bold text-white">
+                中環及九龍東核心商業區（5G 及多功能智慧燈柱）
+              </h2>
+            </div>
+            <p id="inspectorZoneDesc" class="text-xs text-slate-300 mt-1">
+              香港自 2020 年 4 月推出 5G 商用服務後，覆蓋逾九成人口，核心商業區覆蓋率達 99%，5G 可用率於亞太及歐洲名列第一；並於四個地點安裝超過 400 支多功能智慧燈柱。
+            </p>
+          </div>
+          <button id="btnFocusZoneTask" type="button" class="shrink-0 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white transition shadow">
+            前往此區決策
+          </button>
+        </div>
+
+        <!-- 8 大城區快速跳轉按鈕列 -->
+        <div class="mt-2.5">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
+            <span>🏙️ 點擊切換香港 8 大智慧規劃城區（或直接在上方 3D 城市點擊建築）：</span>
+            <span id="builtZonesCountText" class="text-emerald-400 font-semibold">已升級城區：0 / 8</span>
+          </div>
+          <div id="zoneQuickButtons" class="grid grid-cols-2 sm:grid-cols-4 gap-1.5"></div>
+        </div>
+
+        <!-- SimCity 城市自主增建模組 (消耗財政預算即時在 3D 城市加建基礎設施) -->
+        <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs font-semibold text-slate-300">🏗️ 3D 城市自主增建（即時強化當前地塊）：</span>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button id="btnBuild5G" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-sky-900/60 border border-slate-700 hover:border-sky-500/50 text-xs text-slate-200 transition">
+              📡 增設 5G 基站 (-6億 / 基建+4)
+            </button>
+            <button id="btnBuildPrivacyShield" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-emerald-900/60 border border-slate-700 hover:border-emerald-500/50 text-xs text-slate-200 transition">
+              🔒 數據加密與透明審計 (-8億 / 信任+5)
+            </button>
+            <button id="btnBuildCommunityStation" type="button" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-amber-900/60 border border-slate-700 hover:border-amber-500/50 text-xs text-slate-200 transition">
+              👵 社區數碼共融站 (-7億 / 共融+5)
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Result Screen -->
-    <div id="result-screen" class="content" style="display: none;">
-        <div id="result-msg"></div>
-        <button onclick="location.reload()" style="margin-top: 20px;">重新開始遊戲</button>
+    <!-- 右欄：規劃決策中心、回合紀錄、星港數據比較、導學案知識庫 (lg:col-span-5) -->
+    <div class="lg:col-span-5 flex flex-col gap-3 w-full">
+
+      <!-- 右欄分頁切換器 -->
+      <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-1.5 grid grid-cols-4 gap-1">
+        <button id="tabBtnDecision" type="button" class="py-2 px-2 rounded-xl text-xs font-bold transition bg-sky-600 text-white shadow">
+          🎯 規劃決策
+        </button>
+        <button id="tabBtnLog" type="button" class="py-2 px-2 rounded-xl text-xs font-bold transition text-slate-300 hover:bg-slate-800">
+          📋 決策日誌 <span id="badgeLogCount" class="ml-0.5 px-1.5 py-0.2 rounded-full bg-slate-700 text-[10px]">0</span>
+        </button>
+        <button id="tabBtnCompare" type="button" class="py-2 px-2 rounded-xl text-xs font-bold transition text-slate-300 hover:bg-slate-800">
+          📊 星港比較
+        </button>
+        <button id="tabBtnEncyclopedia" type="button" class="py-2 px-2 rounded-xl text-xs font-bold transition text-slate-300 hover:bg-slate-800">
+          📖 導學百科
+        </button>
+      </div>
+
+      <!-- 分頁 1：規劃決策中心 (SimCity 政策抉擇 + 香港優勢與障礙診斷) -->
+      <div id="panelDecision" class="bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-3">
+        <!-- 回合標頭 -->
+        <div class="flex items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+          <div>
+            <div class="flex items-center gap-2">
+              <span id="roundCategoryTag" class="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                第 1 / 8 回合・智慧政府及基建
+              </span>
+              <span id="roundTargetZoneTag" class="text-[11px] text-sky-400 font-medium">
+                📍 中環及九龍東
+              </span>
+            </div>
+            <h3 id="roundTitle" class="text-base sm:text-lg font-extrabold text-white mt-1">
+              多功能智慧燈柱與 5G 網絡部署爭議
+            </h3>
+          </div>
+          <div id="roundDoneBadge" class="hidden px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold shrink-0">
+            ✓ 已完成
+          </div>
+        </div>
+
+        <!-- 情境描述與導學案數據背景 -->
+        <div class="bg-slate-950/90 border border-slate-800/90 rounded-xl p-3 text-xs leading-relaxed text-slate-200 space-y-1.5">
+          <div class="flex items-center justify-between text-[11px] text-sky-400 font-semibold">
+            <span>📄 導學案 02 實況背景與數據：</span>
+            <span id="roundStatHighlight" class="text-amber-300 font-bold">62% 市民擔憂監控技術</span>
+          </div>
+          <p id="roundScenarioText">
+            香港 5G 覆蓋已逾九成人口（核心商業區達 99%，用戶達 650 多萬人），可用率名列亞太及歐洲第一！政府計劃在全港人流車流較多的四個地點安裝超過 400 支「多功能智慧燈柱」收集空氣質素及車流數據。然而，調查顯示約 62% 香港市民對監控技術（如人臉識別系統）表示擔憂（2021 年香港僅 46% 接受人臉識別減罪案，遠低於新加坡的 73%），2019 年更曾引發廣泛關注和抗議。
+          </p>
+        </div>
+
+        <!-- 步驟一：選擇 3D 城市建設與政策方案 -->
+        <div id="step1PolicyBox" class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-sky-300">步驟 1：選擇城市建設方案（點擊方案預覽 3D 建設與指標影響）</span>
+          </div>
+          <div id="policyOptionsContainer" class="space-y-2"></div>
+        </div>
+
+        <!-- 步驟二：公民科核心概念診斷（優勢 vs 障礙分析） -->
+        <div id="step2QuizBox" class="hidden space-y-2.5 pt-2 border-t border-slate-800">
+          <div class="bg-indigo-950/60 border border-indigo-500/40 rounded-xl p-3">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] font-bold text-indigo-300">🎓 步驟 2：公民與社會發展科・優勢與障礙診斷</span>
+              <span class="text-[11px] text-emerald-300 font-semibold">+12.5 概念分</span>
+            </div>
+            <p id="quizQuestionText" class="text-xs sm:text-sm font-bold text-white leading-snug"></p>
+            <div id="quizOptionsContainer" class="mt-2.5 space-y-1.5"></div>
+          </div>
+        </div>
+
+        <!-- 回合決策結果與香港規劃原則解析反饋 -->
+        <div id="roundFeedbackBox" class="hidden bg-slate-950 border border-emerald-500/40 rounded-xl p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <span id="feedbackHeaderBadge" class="text-xs font-extrabold text-emerald-400"></span>
+            <span id="feedbackSourceLink" class="text-[11px]"></span>
+          </div>
+          <p id="feedbackExplanationText" class="text-xs text-slate-200 leading-relaxed"></p>
+          <div class="pt-1 flex items-center justify-between gap-2">
+            <button id="btnPrevRound" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 transition">
+              ← 上一議題
+            </button>
+            <button id="btnNextRound" type="button" class="flex-1 py-2 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-xs sm:text-sm font-extrabold text-white shadow-lg transition">
+              進入下一規劃議題 →
+            </button>
+          </div>
+        </div>
+
+        <!-- 回合導航列 (1-8) -->
+        <div class="pt-2 border-t border-slate-800 flex items-center justify-between gap-1">
+          <span class="text-[11px] text-slate-400">議題進度：</span>
+          <div id="roundStepperDots" class="flex items-center gap-1 flex-wrap"></div>
+          <button id="btnOpenFinalReportEarly" type="button" class="text-[11px] font-semibold text-sky-400 hover:text-sky-300 underline">
+            總結報告
+          </button>
+        </div>
+      </div>
+
+      <!-- 分頁 2：回合決策日誌與規劃原則摘要 -->
+      <div id="panelLog" class="hidden bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+          <div>
+            <h3 class="text-base font-extrabold text-white">📋 智慧城市規劃決策日誌</h3>
+            <p class="text-xs text-slate-400">記錄你在 8 大城區的建設方案、指標變化及所掌握的香港優勢與障礙</p>
+          </div>
+          <button id="btnCopyReportText" type="button" class="px-2.5 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-xs font-semibold text-sky-300 transition">
+            複製學習報告
+          </button>
+        </div>
+        <div id="decisionLogContainer" class="space-y-2.5 max-h-[460px] overflow-y-auto custom-scroll pr-1"></div>
+      </div>
+
+      <!-- 分頁 3：香港 vs 新加坡智慧城市數據比較 (導學案頁 7) -->
+      <div id="panelCompare" class="hidden bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-3">
+        <div class="border-b border-slate-800 pb-2.5">
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-extrabold text-white">📊 香港 vs 新加坡 智慧城市發展概況</h3>
+            <span class="text-[11px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">導學案頁7・2021統計</span>
+          </div>
+          <p class="text-xs text-slate-300 mt-1">
+            比較香港（2021 基準數據 vs 你的規劃後數據）與新加坡在<strong>智慧基礎建設（軟硬件）</strong>及<strong>市民「智慧化」程度</strong>兩大方面的差距。
+          </p>
+        </div>
+
+        <div id="compareTableContainer" class="space-y-2.5 max-h-[380px] overflow-y-auto custom-scroll pr-1"></div>
+
+        <!-- 導學案頁 7 兩大比較結論歸納 -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2 text-xs">
+          <div class="font-bold text-sky-300">📌 導學案核心歸納（香港 vs 新加坡兩個比較方面）：</div>
+          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
+            <span class="font-bold text-amber-300">1. 智慧基礎建設（軟硬件）：</span>
+            <span class="text-slate-200">建築（25% vs 40%）、物聯網（300萬 vs 1000萬台）及交通（60% vs 90%）等智慧化軟硬件，香港的發展程度及覆蓋度均落後於新加坡（相差 15% - 50%）。</span>
+          </div>
+          <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
+            <span class="font-bold text-emerald-300">2. 市民「智慧化」程度：</span>
+            <span class="text-slate-200">市民對智慧城市措施的接受、使用和嚮應程度，香港平均約五成（如接受人臉識別減罪案 46%、願提供資料改善交通 60%、數碼身份僅 19%），新加坡平均超過七成（73%、67%、97%）。</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分頁 4：導學案 02 智慧城市溫習百科 (優勢、障礙、六大範疇、資訊素養) -->
+      <div id="panelEncyclopedia" class="hidden bg-slate-900/95 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col gap-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+          <h3 class="text-base font-extrabold text-white">📖 導學案 02 完整知識庫</h3>
+          <div class="flex items-center gap-1">
+            <button type="button" data-encyc-tab="advantages" class="encyc-subtab px-2 py-1 rounded-lg text-[11px] font-bold bg-emerald-600 text-white">
+              兩大優勢
+            </button>
+            <button type="button" data-encyc-tab="obstacles" class="encyc-subtab px-2 py-1 rounded-lg text-[11px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700">
+              兩大障礙
+            </button>
+            <button type="button" data-encyc-tab="sixareas" class="encyc-subtab px-2 py-1 rounded-lg text-[11px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700">
+              六大範疇
+            </button>
+            <button type="button" data-encyc-tab="literacy" class="encyc-subtab px-2 py-1 rounded-lg text-[11px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700">
+              大數據與素養
+            </button>
+          </div>
+        </div>
+
+        <div id="encyclopediaContent" class="space-y-3 max-h-[460px] overflow-y-auto custom-scroll pr-1 text-xs leading-relaxed"></div>
+      </div>
+
     </div>
-</div>
+  </main>
 
-<script>
-    // Game State
-    let player = "";
-    let budget = 100;
-    let trust = 80;
-    let smart = 0;
-    let currentTurn = 0;
+  <!-- 玩家登入與遊戲介紹 Modal -->
+  <div id="welcomeModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-slate-900 border border-sky-500/40 rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl my-auto space-y-4">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center font-black text-2xl text-white shadow-lg shadow-sky-500/30">
+            3D
+          </div>
+          <div>
+            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+              中六級 公民與社會發展科・導學案 02
+            </span>
+            <h2 class="text-xl sm:text-2xl font-black text-white mt-1">香港智慧城市規劃 (HK Smart City Planner)</h2>
+          </div>
+        </div>
+      </div>
 
-    // Scenarios based on HK Smart City Data & Uploaded PDF
-    const scenarios = [
-        {
-            title: "項目一：全面推行多功能智慧燈柱",
-            description: "政府計劃在全港人流車流較多的地點安裝數百支多功能智慧燈柱，配合5G網絡實時收集空氣質素及交通數據，以建立實體城市的虛擬分身（數字孿生城市）。",
-            advantages: "香港擁有高速 5G 全面覆蓋，具備先進的智慧基礎建設，能為城市管理提供重要數據依據。",
-            obstacles: "市民對數據隱私和安全存有疑慮，擔心燈柱的監控攝像頭會收集個人行蹤，引發社會抗議。",
-            choices: [
-                {
-                    text: "效率優先：強制安裝並啟動所有感測器",
-                    effect: { budget: -15, trust: -30, smart: +30 },
-                    message: "強推計劃雖然迅速提升了智慧管理效率，但漠視市民的安全疑慮，導致公眾強烈反彈，市民信任度大幅下降。"
-                },
-                {
-                    text: "透明度優先：舉辦公眾諮詢，暫緩人臉識別功能",
-                    effect: { budget: -25, trust: +10, smart: +15 },
-                    message: "透過公開透明的溝通，釋除了市民對監控的憂慮。雖然花費了更多時間和預算，但成功獲得市民支持。"
-                }
-            ]
-        },
-        {
-            title: "項目二：公共服務全面數碼化（智方便）",
-            description: "政府期望在年底前全面採用「智方便」，實現「一網通辦」目標。市民需透過智能手機進行電子身分認證來處理各項政府申請。",
-            advantages: "政府牽頭推動公共服務智慧化，能大幅提升服務效率，並將智慧生活引入市民日常模式。",
-            obstacles: "社會存在「數碼鴻溝」，部分長者或低收入人士缺乏智能設備及數碼技能，對數碼轉型適應滯後。",
-            choices: [
-                {
-                    text: "設立過渡期及關愛基金，派員教導長者使用",
-                    effect: { budget: -30, trust: +20, smart: +20 },
-                    message: "你照顧了弱勢社群的需要，幫助長者跨越數碼鴻溝，政策推行順利且大受好評！"
-                },
-                {
-                    text: "一刀切全面取消紙本申請，節省行政成本",
-                    effect: { budget: +10, trust: -35, smart: +25 },
-                    message: "行政成本下降了，但大批長者因無法適應而求助無門，引發嚴重的社會抱怨，政策被批「離地」。"
-                }
-            ]
-        },
-        {
-            title: "項目三：推展電子健康紀錄（醫健通）大數據分析",
-            description: "為應對人口老化，醫管局提議整合全港市民的電子健康紀錄（醫健通），利用人工智能分析大數據，以預測疾病趨勢及優化醫療資源。",
-            advantages: "大數據具有海量（Volume）及即時性（Velocity）特徵，AI 模型能協助醫療系統作更合適決策。",
-            obstacles: "調查顯示超過一半受訪者擔心數據庫的安全度，害怕健康信息被黑客入侵或作未經授權的第三方訪問。",
-            choices: [
-                {
-                    text: "引入最新區塊鏈加密技術，並賦予市民數據授權決定權",
-                    effect: { budget: -35, trust: +15, smart: +25 },
-                    message: "高規格的網絡安全措施以及市民的自主權，成功化解了隱私危機，系統順利運作。"
-                },
-                {
-                    text: "將系統外判給收費最便宜的海外雲端服務商",
-                    effect: { budget: -5, trust: -45, smart: +10 },
-                    message: "不久後發生數據洩露事件！市民健康私隱外洩，市民對政府的信任度跌至冰點！"
-                }
-            ]
-        },
-        {
-            title: "項目四：智慧出行與智能交通管理",
-            description: "政府計劃利用大數據開發交通數據分析系統，全面推行收費隧道不停車繳費系統，並要求駕駛者開放 GPS 定位以提供實時路況。",
-            advantages: "日常公共交通運輸系統已十分完善，進一步結合數據分析能徹底解決交通擠塞問題。",
-            obstacles: "部分駕駛者不願提供個人移動數據，擔心行蹤被政府長期記錄。",
-            choices: [
-                {
-                    text: "推行獎勵計劃：提供行車數據者可獲免隧道費優惠",
-                    effect: { budget: -20, trust: +15, smart: +20 },
-                    message: "利用經濟誘因成功鼓勵了市民參與，智慧交通系統獲得足夠數據進行精準運作。"
-                },
-                {
-                    text: "立法強制全港車輛安裝並上傳 GPS 數據",
-                    effect: { budget: -10, trust: -30, smart: +25 },
-                    message: "高壓立法引發司法覆核挑戰與社會爭議，雖然系統建成，但警民關係變得緊張。"
-                }
-            ]
+      <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+        歡迎來到香港智慧城市規劃署！政府自 2017 年公布《香港智慧城市藍圖》（76 項措施）及 2020 年公布《藍圖 2.0》（超過 130 項措施）以來，積極推動「智慧出行、智慧生活、智慧環境、智慧市民、智慧政府、智慧經濟」六大範疇。你將透過 <strong>3D 城市沙盤</strong> 作出 8 項關鍵建設決策，親身體驗並剖析香港發展智慧城市的<strong>兩大優勢</strong>與<strong>兩大障礙</strong>！
+      </p>
+
+      <!-- 學習目標卡片 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-3 space-y-1">
+          <div class="font-extrabold text-emerald-300 text-sm">✅ 遊戲目標 (1)：了解香港的優勢</div>
+          <ul class="list-disc list-inside text-slate-200 space-y-1">
+            <li><strong>優勢 1：具備先進的智慧基礎建設</strong>（5G 覆蓋逾 90% 人口、核心商業區 99%、400+ 支智慧燈柱、新田科技城數據中心、數碼港 2026 超算中心 3000 PFLOPS 算力）</li>
+            <li><strong>優勢 2：政府牽頭優先推動和實踐智慧轉型</strong>（2024 服務全面電子化、2025 全面採用「智方便」一網通辦、「資料一站通」5400 個開放數據集、數字孿生城市）</li>
+          </ul>
+        </div>
+        <div class="bg-amber-950/40 border border-amber-500/30 rounded-2xl p-3 space-y-1">
+          <div class="font-extrabold text-amber-300 text-sm">⚠️ 遊戲目標 (2)：了解香港的障礙</div>
+          <ul class="list-disc list-inside text-slate-200 space-y-1">
+            <li><strong>障礙 1：社會嚮應及適應程度較慢（數碼鴻溝）</strong>（65 歲或以上 50% 對數字技能欠自信、18% 低收入家庭無穩定網絡、智慧應用活躍用戶僅佔人口 20%、消閑型用戶為主）</li>
+            <li><strong>障礙 2：數據隱私和安全疑慮</strong>（62% 市民擔憂人臉識別等監控技術、逾 50% 擔心醫健通數據庫安全、54% 擔心智能家居黑客入侵，引發信任危機）</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 玩家輸入表單 -->
+      <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label for="inputPlayerName" class="block text-xs font-bold text-sky-300 mb-1">
+              👤 請輸入玩家姓名（必填，將顯示於總規劃師證書及報告）：
+            </label>
+            <input id="inputPlayerName" type="text" placeholder="例如：陳大文 / Wong Chi Chung" maxlength="30" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 focus:border-sky-400 focus:outline-none text-sm text-white font-semibold">
+          </div>
+          <div>
+            <label for="inputPlayerClass" class="block text-xs font-bold text-slate-300 mb-1">
+              🏫 班別／學號（選填）：
+            </label>
+            <input id="inputPlayerClass" type="text" placeholder="例如：6C (01)" maxlength="20" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 focus:border-sky-400 focus:outline-none text-sm text-white">
+          </div>
+        </div>
+        <p id="welcomeNameError" class="hidden text-xs font-semibold text-rose-400">
+          ⚠️ 請先輸入你的姓名以建立香港智慧城市總規劃師檔案！
+        </p>
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <button id="btnDemoFill" type="button" class="text-xs text-slate-400 hover:text-sky-300 underline">
+            快速填入示範姓名（6C 總規劃師）
+          </button>
+          <button id="btnStartGame" type="button" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-sm font-black text-white shadow-lg shadow-sky-500/25 transition">
+            🚀 進入 3D 香港智慧城市開始規劃
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 總結評估報告與成績單 Modal -->
+  <div id="finalReportModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-slate-900 border border-sky-500/40 rounded-3xl max-w-3xl w-full p-5 sm:p-7 shadow-2xl my-auto space-y-4 max-h-[92vh] overflow-y-auto custom-scroll">
+      <div class="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
+        <div>
+          <span id="finalBadgeRank" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+            香港智慧城市藍圖 2.0 總體檢報告
+          </span>
+          <h2 id="finalModalTitle" class="text-xl sm:text-2xl font-black text-white mt-1">
+            香港智慧城市規劃總結報告
+          </h2>
+          <p id="finalPlayerSubtitle" class="text-xs text-slate-400 mt-0.5"></p>
+        </div>
+        <button id="btnCloseFinalModal" type="button" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300">
+          ✕ 關閉
+        </button>
+      </div>
+
+      <!-- 四大指標與總評分卡片 -->
+      <div id="finalMetricsSummary" class="grid grid-cols-2 sm:grid-cols-5 gap-2.5"></div>
+
+      <!-- 優勢與障礙掌握度分析 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+        <div class="bg-emerald-950/35 border border-emerald-500/30 rounded-2xl p-3.5 space-y-1.5">
+          <div class="font-extrabold text-emerald-300 text-sm">🌟 你在規劃中善用的【香港兩大優勢】</div>
+          <p class="text-slate-200 leading-relaxed">
+            <strong>1. 先進的智慧基礎建設：</strong>香港 5G 覆蓋逾 90% 人口（核心商業區 99%），可用率位居亞太及歐洲第一，配合 400+ 支智慧燈柱、新田科技城數據中心及數碼港 AI 超算中心（2026 年提供 3000 千萬億次浮點運算算力），提供低延遲數據傳輸與強大算力基礎。
+          </p>
+          <p class="text-slate-200 leading-relaxed">
+            <strong>2. 政府牽頭優先推動和實踐智慧轉型：</strong>政府於 2024 年中完成服務全面電子化，2025 年底全面採用「智方便」實現「一網通辦」，並透過「資料一站通」（5400 個開放數據集）及「數字孿生城市」帶領業界轉型及吸引創科企業。
+          </p>
+        </div>
+
+        <div class="bg-amber-950/35 border border-amber-500/30 rounded-2xl p-3.5 space-y-1.5">
+          <div class="font-extrabold text-amber-300 text-sm">🚧 你在規劃中化解的【香港兩大障礙】</div>
+          <p class="text-slate-200 leading-relaxed">
+            <strong>1. 社會嚮應及適應程度較慢（數碼鴻溝）：</strong>針對 65 歲或以上長者 50% 對數字技能欠自信、18% 低收入家庭無穩定網絡、智慧應用整體活躍用戶僅佔 20% 及消閑型用戶偏多的問題，透過社區培訓與上網支援提升普及率。
+          </p>
+          <p class="text-slate-200 leading-relaxed">
+            <strong>2. 數據隱私和安全疑慮：</strong>針對 62% 市民擔憂監控技術（如人臉識別）、逾 50% 擔心醫健通數據庫安全、54% 擔心智能家居黑客入侵及 GPS 定位憂慮，以光學雷達替代攝影機、強化加密與透明度以重建市民信任。
+          </p>
+        </div>
+      </div>
+
+      <!-- 官方參考資料與連結 -->
+      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3.5 text-xs space-y-1.5">
+        <div class="font-bold text-sky-300">🔗 政府官方智慧城市資料與延伸閱讀：</div>
+        <div class="flex flex-wrap gap-3 text-sky-400">
+          <a href="https://www.smartcity.gov.hk/tc/vision-and-mission.html" target="_blank" rel="noopener noreferrer" class="hover:underline">• 香港智慧城市專門網站 (smartcity.gov.hk)</a>
+          <a href="https://www.info.gov.hk/gia/general/202012/10/P2020121000631.htm" target="_blank" rel="noopener noreferrer" class="hover:underline">• 政府公布《香港智慧城市藍圖 2.0》新聞公報</a>
+          <a href="https://www.digitalpolicy.gov.hk/tc/our_work/digital_government/business_facilitation/business_facilitation_advisory_committee/business_facilitation_advisory_committee/doc/Chi_44BFAC_Paper_2_21.pdf" target="_blank" rel="noopener noreferrer" class="hover:underline">• 數字政策辦公室《藍圖 2.0》文件</a>
+          <a href="https://ls.chiculture.org.hk/tc/china-comment/710" target="_blank" rel="noopener noreferrer" class="hover:underline">• 公民・好學：香港智慧城市專題</a>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
+        <button id="btnModalCopySummary" type="button" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-sky-300 transition">
+          📋 複製完整學習成績報告
+        </button>
+        <div class="flex items-center gap-2">
+          <button id="btnContinueExplore3D" type="button" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition">
+            繼續探索 3D 城市
+          </button>
+          <button id="btnModalRestart" type="button" class="px-5 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-xs font-extrabold text-white shadow-lg transition">
+            🔄 重新開始新規劃
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 頂部通知 Toast -->
+  <div id="toastNotification" class="fixed bottom-4 right-4 z-50 hidden max-w-sm bg-slate-900/95 border border-sky-500/50 text-white px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-md text-xs font-medium transition-all">
+    <div id="toastText"></div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. 音效合成器 (Web Audio API，免外部音檔)
+    // ==========================================
+    const SoundFX = {
+      ctx: null,
+      enabled: true,
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
         }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      playTone(freq, type = 'sine', duration = 0.12, gainVal = 0.08, delay = 0) {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime + delay;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(gainVal, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + duration);
+        } catch (e) {}
+      },
+      click() { this.playTone(520, 'sine', 0.07, 0.06); },
+      build() {
+        this.playTone(330, 'triangle', 0.1, 0.08, 0);
+        this.playTone(440, 'triangle', 0.12, 0.08, 0.08);
+        this.playTone(660, 'triangle', 0.18, 0.09, 0.16);
+      },
+      correct() {
+        this.playTone(523.25, 'sine', 0.12, 0.09, 0);
+        this.playTone(659.25, 'sine', 0.14, 0.09, 0.1);
+        this.playTone(783.99, 'sine', 0.22, 0.1, 0.2);
+      },
+      wrong() {
+        this.playTone(240, 'sawtooth', 0.15, 0.07, 0);
+        this.playTone(190, 'sawtooth', 0.22, 0.07, 0.12);
+      },
+      fanfare() {
+        [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+          this.playTone(f, 'triangle', 0.22, 0.09, i * 0.11);
+        });
+      }
+    };
+
+    // ==========================================
+    // 2. 導學案 02 核心數據與 8 大 3D 城區規劃議題
+    // ==========================================
+    const CITY_ZONES = [
+      {
+        id: 0,
+        shortName: '中環・5G與智慧燈柱',
+        name: '中環及九龍東核心商業區（5G 及多功能智慧燈柱）',
+        category: '智慧政府 / 智慧基建',
+        pos: { x: -16, z: -12 },
+        color: 0x38bdf8,
+        baseDesc: '香港自 2020 年 4 月推出 5G 商用服務後，現時 5G 覆蓋已逾香港九成人口，在核心商業區的覆蓋率更達 99%，5G 用戶達 650 多萬人，可用率於亞太及歐洲地區排行第一；並在全港四個地點安裝超過 400 支多功能智慧燈柱。',
+        roundTitle: '多功能智慧燈柱與 5G 網絡部署爭議',
+        statHighlight: '5G 核心區覆蓋 99% vs 62% 市民擔憂監控',
+        scenario: '香港具備先進的 5G 網絡基礎建設（核心商業區覆蓋率達 99%，用戶逾 650 萬）。政府在全港人流車流較多的四個地點安裝超過 400 支「多功能智慧燈柱」以收集空氣質素及道路車流實時數據。然而，調查顯示約 62% 香港市民對監控技術（如人臉識別系統）表示擔憂（2021 年香港僅 46% 市民接受使用人臉識別減罪案，遠低於新加坡的 73%），2019 年更曾引發社會關注和抗議。你會如何規劃？',
+        options: [
+          {
+            id: 'A',
+            title: '方案 A：改用光學雷達與熱能探測器替代高清鏡頭，並公開實時環境數據',
+            desc: '發揮香港 5G 低延遲優勢收集氣象、空氣質素及車流數據，同時移除具爭議的人臉識別潛在硬件，公開技術報告消除市民對監控的疑慮。',
+            cost: 12,
+            effects: { infra: 10, trust: 12, inclusion: 4, economy: 6 },
+            feedback: '極佳決策！既發揮了香港「高速 5G 全面覆蓋」的智慧基建優勢，又直接回應了 62% 市民對監控技術與個人行蹤曝光的私隱疑慮，重建公眾信任。'
+          },
+          {
+            id: 'B',
+            title: '方案 B：強行在全港加裝高解析度人臉識別鏡頭，不作額外公眾諮詢',
+            desc: '以最低行政成本加速部署監控鏡頭，迅速提升硬件數量，但忽略市民對個人行為數據收集的擔憂。',
+            cost: 8,
+            effects: { infra: 12, trust: -14, inclusion: -4, economy: 2 },
+            feedback: '注意！雖然硬件數量提升，但香港僅 46% 市民接受人臉識別減罪案（新加坡為 73%）。缺乏透明度會加劇信任危機，削弱市民對智慧城市政策的支持度及參與意願。'
+          },
+          {
+            id: 'C',
+            title: '方案 C：全面擱置多功能智慧燈柱計劃，只保留基本路燈照明功能',
+            desc: '為避免任何私隱爭議而停止收集實時交通與環境數據。',
+            cost: 2,
+            effects: { infra: -6, trust: 4, inclusion: 0, economy: -6 },
+            feedback: '過於保守！智慧燈柱能實時收集空氣質量與交通流量數據，為城市管理提供重要依據。完全擱置會令香港智慧基建進度更落後於新加坡。'
+          }
+        ],
+        quiz: {
+          question: '根據《導學案 02》，2019 年「多功能智慧燈柱」引發關注及 62% 市民擔憂監控技術，主要反映香港在智慧城市發展上面對哪一項核心障礙？',
+          choices: [
+            { text: '障礙（2）：數據隱私和安全疑慮（擔心監控技術監視個人日常與行蹤，引發信任危機）', correct: true },
+            { text: '障礙（1）：低收入家庭缺乏 5G 電訊網絡覆蓋（香港核心商業區未有 5G 服務）', correct: false },
+            { text: '香港的 5G 可用率在亞太及歐洲地區排名墊底，無法傳輸實時數據', correct: false }
+          ],
+          explanation: '解析：香港 5G 覆蓋逾 90% 人口（核心區 99%），可用率排亞太及歐洲第一（屬優勢 1）；但約 62% 市民擔憂監控技術（如人臉識別），反映「障礙（2）：數據隱私和安全疑慮」，會令市民產生信任危機並削弱參與度。',
+          sourceUrl: 'https://ls.chiculture.org.hk/tc/china-comment/710',
+          sourceTitle: '公民・好學：香港智慧城市（智慧燈柱與私隱議題）'
+        }
+      },
+      {
+        id: 1,
+        shortName: '數碼港・超算與開放數據',
+        name: '數碼港及新田科技城（AI 超算中心與「資料一站通」）',
+        category: '大數據與 AI 基建',
+        pos: { x: -20, z: 14 },
+        color: 0x818cf8,
+        baseDesc: '政府在新田科技城預留土地發展商業及政府數據中心；數碼港正籌備建立人工智能超算中心，最快在 2026 年提供每秒浮點運算 3000 千萬億次 (PFLOPS) 的算力；「資料一站通」(data.gov.hk) 提供約 5400 個開放數據集。',
+        roundTitle: '建立數碼港 AI 超算中心與新田科技城數據中心',
+        statHighlight: '2026 提供 3000 千萬億次浮點運算算力',
+        scenario: '為持續支援智慧城市及人工智能（歷史數據→分析數據→建立模型→結合新數據→預測未來）的發展，政府在新田科技城預留土地發展數據中心，數碼港亦籌備建立人工智能超算中心（最快 2026 年提供每秒浮點運算 3000 千萬億次算力），並透過「資料一站通」(data.gov.hk) 開放 79 個政府部門及 39 個公營機構共約 5400 個數據集（涵蓋 19 個類別）。你應如何配置資源？',
+        options: [
+          {
+            id: 'A',
+            title: '方案 A：全速建設數碼港 AI 超算中心，並擴大「資料一站通」實時開放數據 API',
+            desc: '投資 3000 PFLOPS 超算算力及新田科技城數據中心，免費開放氣象、數碼地圖及專營巴士/小巴/港鐵實時到站數據予科研及初創界。',
+            cost: 16,
+            effects: { infra: 14, trust: 4, inclusion: 4, economy: 14 },
+            feedback: '高瞻遠矚！強大的超算算力配合「資料一站通」5400 個開放數據集，充分展現香港「先進智慧基建」與「政府牽頭推動智慧轉型」兩大優勢，吸引科技企業進駐！'
+          },
+          {
+            id: 'B',
+            title: '方案 B：只建設政府內部封閉式數據庫，向公眾及初創企業收取高昂數據使用費',
+            desc: '保留數據於政府內部使用，不開放免費數據集，以節省伺服器頻寬開支。',
+            cost: 8,
+            effects: { infra: 6, trust: -4, inclusion: -4, economy: -6 },
+            feedback: '錯失良機！「資料一站通」(data.gov.hk) 的核心價值在於供各界免費試用 19 個類別的開放數據，封閉收費會阻礙業界數碼化轉型與創新。'
+          },
+          {
+            id: 'C',
+            title: '方案 C：將新田科技城創科用地改作傳統豪宅地產項目以換取短期賣地收入',
+            desc: '放棄數據中心及超算中心基建，換取短期財政收入。',
+            cost: -10,
+            effects: { infra: -10, trust: -2, inclusion: 0, economy: -10 },
+            feedback: '短視決策！缺乏數據中心與 AI 超算中心（3000 千萬億次算力），香港將無法滿足中長期的超算與智慧城市發展要求。'
+          }
+        ],
+        quiz: {
+          question: '根據《導學案 02》，Google Map 等人工智能（AI）系統及「資料一站通」大數據平台，是如何透過大數據運作並具備哪四項特徵（4V）？',
+          choices: [
+            { text: '4V 為資料量大 (Volume)、多樣性 (Variety)、即時性 (Velocity)、真實性 (Veracity)；AI 透過「歷史數據→分析數據→建立模型（結合新數據）→預測未來」運作', correct: true },
+            { text: '4V 為虛擬性 (Virtual)、視覺化 (Visual)、單一性 (Uniformity)、滯後性 (Delay)；只靠單一歷史數據運作', correct: false },
+            { text: '大數據只包含純文字表格，不包含照片、聲音、影片或超連結', correct: false }
+          ],
+          explanation: '解析：大數據具備 4V 特徵：Volume（資料量大）、Variety（資料多樣性：照片、文字、聲音、影片、超連結等）、Velocity（資料即時性）、Veracity（資料真實性）；而 AI 學習模式為收集歷史數據→分析數據→建立模型（並持續輸入新數據）→預測未來。',
+          sourceUrl: 'https://www.smartcity.gov.hk/tc/vision-and-mission.html',
+          sourceTitle: '香港智慧城市專門網站：願景及目標'
+        }
+      },
+      {
+        id: 2,
+        shortName: '政總・「智方便」一網通辦',
+        name: '政府總部及數碼政務大樓（「智方便」與全面電子化）',
+        category: '智慧政府',
+        pos: { x: -4, z: -14 },
+        color: 0x2dd4bf,
+        baseDesc: '各局/部門已於 2024 年中完成政府服務全面電子化目標，並推動在 2025 年底前全面採用「智方便」實現「一網通辦」；惟 2021 年香港數碼個人身份覆蓋率僅 19%（新加坡達 97%）。',
+        roundTitle: '突破 19% 數碼身份覆蓋率：推動「智方便」一網通辦',
+        statHighlight: '數碼身份覆蓋率：香港 19% vs 新加坡 97%',
+        scenario: '根據 2021 年比較數據，香港的「數碼個人身份覆蓋率」僅 19%，遠低於新加坡的 97%，政府一站式服務應用下載量亦僅約 150,000 次。目前香港政府各局/部門已完成於 2024 年中或以前政府服務全面電子化的目標，並推動在 2025 年年底前全面採用「智方便」平台實現「一網通辦」。你會如何提升市民使用率？',
+        options: [
+          {
+            id: 'A',
+            title: '方案 A：全面整合「智方便」一網通辦 + 引入 AI 聊天機械人熱線及區塊鏈電子證書牌照',
+            desc: '讓市民不再受限於政府辦公時間，實現即時提交和審核電子申請，並在全港增設自助登記站協助市民開通。',
+            cost: 14,
+            effects: { infra: 8, trust: 8, inclusion: 10, economy: 12 },
+            feedback: '成效顯著！這展現了「優勢（2）：政府牽頭優先推動和實踐智慧轉型」，減少公共服務處理時間、不受辦公時間限制，加快引領市民接受數碼化轉型！'
+          },
+          {
+            id: 'B',
+            title: '方案 B：立即取消所有政府櫃位及電話查詢，強制所有市民只能用手機 App 辦事',
+            desc: '一刀切關閉傳統渠道以節省行政成本，但未考慮不諳數碼技術的群體。',
+            cost: 6,
+            effects: { infra: 6, trust: -10, inclusion: -14, economy: 4 },
+            feedback: '引發民怨！香港 65 歲或以上人士有 50% 對數字技能應用欠自信，一刀切取消櫃位支援會嚴重加深「數碼鴻溝」。'
+          },
+          {
+            id: 'C',
+            title: '方案 C：各部門維持獨立網站與紙本表格，不進行跨部門數據互通',
+            desc: '維持原有部門各自為政的做法，市民每次申請仍須重複填寫地址證明。',
+            cost: 4,
+            effects: { infra: -4, trust: 0, inclusion: -2, economy: -8 },
+            feedback: '停滯不前！未能發揮「智方便」促進局/部門之間數據互通及「一網通辦」的優勢。'
+          }
+        ],
+        quiz: {
+          question: '根據《導學案 02》，政府推動「智方便」、實現政府服務「一網通辦」及在醫院運用射頻識別（RFID）管理危險藥物，體現了香港發展智慧城市的哪一項優勢？',
+          choices: [
+            { text: '優勢（2）：政府牽頭優先推動和實踐智慧轉型（將智慧生活引入日常、提升服務效率，並為業界提供智慧範式）', correct: true },
+            { text: '香港在 2021 年的數碼個人身份覆蓋率已達 97%，超越新加坡成為全球第一', correct: false },
+            { text: '香港市民對政策諮詢活動的平均參與率高達 80%，無須政府推動', correct: false }
+          ],
+          explanation: '解析：2021 年香港數碼個人身份覆蓋率為 19%（新加坡 97%），政策諮詢參與率僅 0.00004%。因此由「政府牽頭優先推動和實踐智慧轉型」（如全面電子化、智方便一網通辦）正是香港帶領市民及業界轉型的關鍵優勢（優勢 2）！',
+          sourceUrl: 'https://www.info.gov.hk/gia/general/202012/10/P2020121000631.htm',
+          sourceTitle: '政府公布《香港智慧城市藍圖 2.0》新聞公報'
+        }
+      },
+      {
+        id: 3,
+        shortName: '紅隧・智慧出行與易通行',
+        name: '海底隧道及公共運輸交匯處（智慧出行：香港出行易與不停車繳費）',
+        category: '智慧出行',
+        pos: { x: 2, z: -2 },
+        color: 0xf59e0b,
+        baseDesc: '《藍圖》智慧出行措施包括「香港出行易」、收費隧道不停車繳費系統，以及公共運輸交匯處/巴士站服務實時資訊顯示屏。2021 年香港公共交通智慧化程度為 60%（新加坡 90%）。',
+        roundTitle: '智慧出行升級：不停車繳費與實時交通數據私隱平衡',
+        statHighlight: '公共交通智慧化：香港 60% vs 新加坡 90%',
+        scenario: '在「智慧出行」範疇，香港公共交通智慧化程度為 60%（落後於新加坡的 90%），而「香港智慧交通」應用程式總下載量約 300,000 次。雖然有 60% 香港市民願意提供個人資料以改善交通擠塞情況（新加坡為 67%），但仍有不少市民對提供或開放 GPS 定位數據感到憂慮。你應如何推進智慧出行基建？',
+        options: [
+          {
+            id: 'A',
+            title: '方案 A：全面推行收費隧道不停車繳費系統 + 巴士站實時資訊屏 + 匿名化交通數據分析',
+            desc: '升級「香港出行易」整合專營巴士、小巴、港鐵實時到站數據，並採用去識別化（匿名）方式收集車流移動數據以保障車主 GPS 私隱。',
+            cost: 14,
+            effects: { infra: 12, trust: 8, inclusion: 6, economy: 8 },
+            feedback: '規劃得宜！同時落實《藍圖》兩項核心智慧出行措施（智能運輸及不停車繳費、巴士站實時資訊顯示屏），並以匿名化技術化解車主對 GPS 定位數據的憂慮！'
+          },
+          {
+            id: 'B',
+            title: '方案 B：強制所有私家車安裝實時個人實名 GPS 追蹤器，並與商業廣告商共享行車軌跡',
+            desc: '雖能收集最詳盡車流，但將個人行蹤數據共享予商業機構以補貼建設費。',
+            cost: 6,
+            effects: { infra: 8, trust: -16, inclusion: -4, economy: 2 },
+            feedback: '嚴重違反私隱原則！市民正擔憂個人數據如何被使用、存儲和共享缺乏透明度，將 GPS 定位用於商業用途會引爆信任危機。'
+          },
+          {
+            id: 'C',
+            title: '方案 C：保留傳統人手收費亭，只在少數新建巴士總站安裝電子顯示屏',
+            desc: '維持現狀，避免改動隧道收費模式。',
+            cost: 4,
+            effects: { infra: 2, trust: 2, inclusion: 0, economy: -4 },
+            feedback: '進度緩慢！未能縮小香港（60%）與新加坡（90%）在公共交通智慧化程度上的 30% 差距。'
+          }
+        ],
+        quiz: {
+          question: '根據《導學案 02》頁 6，《香港智慧城市藍圖》在「智慧出行」範疇下提出的兩項主要措施是什麼？',
+          choices: [
+            { text: '（1）智能運輸系統及交通管理（香港出行易、收費隧道不停車繳費系統）；（2）公共運輸交匯處／巴士站服務實時資訊顯示屏', correct: true },
+            { text: '（1）網上虛擬銀行與積金易；（2）城市景昔與大澳旅遊熱點人流資訊', correct: false },
+            { text: '（1）學校 IT 創新實驗室計劃；（2）無人船隻監測水塘水質污染', correct: false }
+          ],
+          explanation: '解析：「香港出行易、收費隧道不停車繳費系統」及「巴士服務實時資訊顯示屏」屬於【智慧出行】；虛擬銀行與城市景昔屬【智慧經濟】；學校 IT 創新實驗室屬【智慧市民】；無人船監測水質屬【智慧環境】。',
+          sourceUrl: 'https://www.smartcity.gov.hk/tc/vision-and-mission.html',
+          sourceTitle: '香港智慧城市藍圖：六大範疇措施'
+        }
+      },
+      {
+        id: 4,
+        shortName: '醫院街市・醫健通與支付',
+        name: '智慧醫院及公眾街市（智慧生活：醫健通與非接觸式付款）',
+        category: '智慧生活',
+        pos: { x: 16, z: -12 },
+        color: 0xf43f5e,
+        baseDesc: '《藍圖》智慧生活措施包括：（1）支援醫療服務：電子健康紀錄互通系統（醫健通）；（2）數碼支付：於公眾街市推廣使用非接觸式付款。惟超過 50% 受訪者擔心醫療數據庫安全。',
+        roundTitle: '智慧生活：推廣「醫健通」與公眾街市非接觸式付款',
+        statHighlight: '逾 50% 受訪者擔心醫療數據庫安全度',
+        scenario: '在「智慧生活」範疇，政府積極推動電子健康紀錄互通系統（「醫健通」）及遙距醫療，並於公眾街市推廣使用非接觸式付款。然而，調查顯示超過 50% 的受訪者擔心醫療數據庫的安全度，憂慮自己的健康信息可能會被未經授權的第三方訪問；同時有約 54% 市民擔心智能家居技術被黑客入侵。你會如何部署？',
+        options: [
+          {
+            id: 'A',
+            title: '方案 A：強化「醫健通」端對端加密與病人授權機制 + 資助公眾街市檔販安裝非接觸式支付',
+            desc: '規定每次跨院查閱健康紀錄必須經病人雙重認證並發送即時短訊通知，同時向街市檔戶及長者推廣安全易用的非接觸式付款。',
+            cost: 14,
+            effects: { infra: 8, trust: 14, inclusion: 10, economy: 8 },
+            feedback: '深得民心！透過強化數據庫安全與病人授權透明度，直接化解超過 50% 受訪者對健康信息外洩的憂慮，並讓市民在街市買餸與求醫時切身體驗智慧生活的好處！'
+          },
+          {
+            id: 'B',
+            title: '方案 B：預設開放所有「醫健通」市民病歷予私營保險及藥廠作大數據商業研發',
+            desc: '無須市民逐一同意即可共享醫療紀錄，以吸引醫療創科資金。',
+            cost: 4,
+            effects: { infra: 4, trust: -18, inclusion: -6, economy: 4 },
+            feedback: '重大危機！超過 50% 受訪者原本已擔心自己的健康信息被未經授權的第三方訪問，未經同意開放病歷會徹底摧毀市民對智慧醫療的信任！'
+          },
+          {
+            id: 'C',
+            title: '方案 C：只推廣街市非接觸式支付，暫停「醫健通」電子健康紀錄互通及遙距醫療',
+            desc: '因擔心黑客攻擊集中存儲的數據庫而放棄智慧醫療發展。',
+            cost: 6,
+            effects: { infra: -2, trust: 4, inclusion: 2, economy: 2 },
+            feedback: '過於消極！「醫健通」與遙距醫療是「智慧生活」支援醫療服務的核心措施，應加強網絡安全防護而非因噎廢食。'
+          }
+        ],
+        quiz: {
+          question: '根據《導學案 02》頁 10-11，在智慧醫療（電子健康紀錄系統）及智能家居普及過程中，市民面對哪些具體的「數據隱私和安全疑慮」數據？',
+          choices: [
+            { text: '超過 50% 受訪者擔心醫療數據庫安全度及被未經授權第三方訪問；約 54% 市民擔心智能家居技術遭黑客入侵', correct: true },
+            { text: '只有 5% 受訪者擔心醫療數據安全，高達 95% 市民完全信任第三方機構自由存取病歷', correct: false },
+            { text: '公眾街市推廣非接觸式付款屬於「智慧環境」範疇下的污染監測措施', correct: false }
+          ],
+          explanation: '解析：導學案頁 10 明確指出：超過 50% 受訪者擔心電子健康記錄系統數據庫的安全度（怕健康信息被未經授權第三方訪問），並有約 54% 市民擔心智能家居技術被黑客入侵。數據集中存儲會增大駭客攻擊與外洩風險。',
+          sourceUrl: 'https://www.smartcity.gov.hk/tc/vision-and-mission.html',
+          sourceTitle: '香港智慧城市藍圖：智慧生活範疇'
+        }
+      },
+      {
+        id: 5,
+        shortName: '綠建水塘・智慧環境監測',
+        name: '環保屋苑及生態水塘區（智慧環境：綠色建築、電動車充電與無人船）',
+        category: '智慧環境',
+        pos: { x: 20, z: 12 },
+        color: 0x10b981,
+        baseDesc: '《藍圖》智慧環境措施包括：（1）綠色及智慧建築和能源效益：公共照明 (LED)、私人住宅停車場安裝電動車充電設施；（2）污染監測：遙測感應裝置（空氣污染）、無人船隻（水塘水質污染）。',
+        roundTitle: '智慧環境：提升 25% 綠色建築比例與無人船污染監測',
+        statHighlight: '綠色建築及智能電網：香港 25% vs 新加坡 40%',
+        scenario: '根據 2021 年星港比較數據，香港「建築物符合綠色建築標準，並推動智能電網技術的應用」比例僅 25%（落後於新加坡的 40%）；物聯網 (IoT) 部署預計 2025 年香港約 300 萬台（新加坡約 1000 萬台）。為落實「智慧環境」，你會如何規劃能源效益與污染監測建設？',
+        options: [
+          {
+            id: 'A',
+            title: '方案 A：全面更換 LED 公共照明 + 資助私人屋苑停車場安裝電動車充電 + 部署空氣遙測與水塘無人船',
+            desc: '結合綠色建築智能電網、電動車充電基建及 IoT 污染監測（空氣污染遙測感應裝置、水塘水質監測無人船隻）。',
+            cost: 15,
+            effects: { infra: 14, trust: 6, inclusion: 6, economy: 8 },
+            feedback: '完美落實《藍圖》智慧環境兩大措施！既提升了綠色建築、LED 公共照明與電動車充電配套，又以遙測感應裝置及無人船隻精準監測空氣與水塘水質污染！'
+          },
+          {
+            id: 'B',
+            title: '方案 B：只更換主幹道 LED 路燈，不資助私人住宅樓宇安裝電動車充電及水質無人船',
+            desc: '僅作最低限度的公共照明更換，節省財政開支。',
+            cost: 5,
+            effects: { infra: 4, trust: 0, inclusion: 0, economy: 2 },
+            feedback: '覆蓋不足！私人住宅樓宇停車場缺乏充電設施會窒礙電動車普及，亦未能縮小香港（25%）與新加坡（40%）在綠色建築與智能電網上的差距。'
+          },
+          {
+            id: 'C',
+            title: '方案 C：依靠人手定期乘船到水塘抽樣化驗，暫緩物聯網 (IoT) 感測器部署',
+            desc: '維持傳統人工抽樣模式，不採用遙測感應與無人船技術。',
+            cost: 3,
+            effects: { infra: -4, trust: 0, inclusion: 0, economy: -4 },
+            feedback: '效率低下！香港預計 2025 年 IoT 部署僅約 300 萬台（新加坡達 1000 萬台），放棄無人船與遙測感應裝置會令環境監測缺乏即時性（Velocity）。'
+          }
+        ],
+        quiz: {
+          question: '根據《導學案 02》頁 6 及頁 7，下列哪一項正確描述香港在「智慧環境」的措施及與新加坡的基建差距？',
+          choices: [
+            { text: '採用遙測感應裝置監測空氣污染、無人船隻監測水塘水質污染，並推廣 LED 公共照明及私樓停車場電動車充電；2021 年香港綠色建築及智能電網應用為 25%（新加坡 40%）', correct: true },
+            { text: '香港在 2021 年綠色建築及智能電網應用已達 90%，物聯網部署達 5000 萬台，遠超新加坡', correct: false },
+            { text: '無人船隻主要用於維多利亞港載客渡輪，與水塘水質污染監測無關', correct: false }
+          ],
+          explanation: '解析：導學案頁 6 列明「智慧環境」包括（1）公共照明 (LED)、私人住宅停車場安裝電動車充電設施；（2）遙測感應裝置（空氣污染）、無人船隻（水塘水質污染）。頁 7 指出香港符合綠色建築標準並推動智能電網應用佔 25%（新加坡 40%）。',
+          sourceUrl: 'https://www.smartcity.gov.hk/tc/vision-and-mission.html',
+          sourceTitle: '香港智慧城市藍圖：智慧環境範疇'
+        }
+      },
+      {
+        id: 6,
+        shortName: '校園社區・智慧市民與共融',
+        name: '學校 IT 創新實驗室及樂齡社區中心（智慧市民：消弭數碼鴻溝）',
+        category: '智慧市民',
+        pos: { x: -2, z: 15 },
+        color: 0xeab308,
+        baseDesc: '《藍圖》智慧市民措施包括學校 IT 創新實驗室計劃及支援青年創業。惟香港面對嚴重「數碼鴻溝」：65 歲或以上 50% 對數字技能欠自信、18% 低收入家庭無穩定網絡，智慧應用整體活躍用戶僅佔 20%。',
+        roundTitle: '智慧市民：培育青年創科人才與跨越「數碼鴻溝」',
+        statHighlight: '65歲+ 50%欠數字自信・活躍用戶僅佔 20%',
+        scenario: '《導學案 02》統計揭示香港智慧城市發展的一大障礙：個人對數字技能應用欠自信（65 歲以下佔 30%，65 歲或以上高達 50%）；低收入家庭無法接入穩定網絡服務佔 18%；智慧城市政策諮詢平均參與率僅 0.00004%；而且不少市民屬「數碼娛樂型/消閑型用戶」（只用手機看社交媒體、遊戲、視頻，而非生活功能應用），令智慧城市相關應用的整體活躍用戶僅佔整體人口 20%！你會如何規劃？',
+        options: [
+          {
+            id: 'A',
+            title: '方案 A：推行「學校 IT 創新實驗室計劃」培育青年 + 長者數碼外展培訓 + 低收入家庭寬頻津貼',
+            desc: '雙管齊下：在中學設立 IT 創新實驗室及支援青年初創，同時在屋邨為長者提供一對一智能應用教學、向 18% 缺網基層家庭提供穩定網絡，並將實用功能融入日常以轉化消閑型用戶。',
+            cost: 15,
+            effects: { infra: 6, trust: 10, inclusion: 18, economy: 10 },
+            feedback: '精準破解「障礙（1）：社會嚮應及適應程度較慢」！既落實了「智慧市民」培育青年人才與初創支援，又直接縮窄長者與低收入家庭的「數碼鴻溝」，大幅提升智慧應用活躍用戶比例！'
+          },
+          {
+            id: 'B',
+            title: '方案 B：只向大學科研精英及初創公司發放資助，不設長者及基層家庭數碼支援',
+            desc: '集中資源培育青年創業家，認為長者及基層自然會慢慢適應。',
+            cost: 8,
+            effects: { infra: 4, trust: 0, inclusion: -8, economy: 8 },
+            feedback: '未能解決數碼鴻溝！65 歲或以上人士有 50% 對數字技能欠自信、18% 低收入家庭缺乏穩定網絡，忽略他們會導致龐大群體無法參與智慧城市發展，拉低整體使用率。'
+          },
+          {
+            id: 'C',
+            title: '方案 C：舉辦單次網上問卷諮詢活動，不提供實質培訓或財政支援',
+            desc: '僅在政府網站張貼諮詢連結。',
+            cost: 2,
+            effects: { infra: 0, trust: -2, inclusion: -4, economy: -2 },
+            feedback: '成效極微！數據顯示香港智慧城市政策諮詢活動的平均參與率僅約佔整體人口的 0.00004%，單靠網上問卷無法觸及長者及消閑型用戶。'
+          }
+        ],
+        quiz: {
+          question: '根據《導學案 02》頁 10-11，為甚麼香港「智慧城市相關應用的整體活躍用戶數量」僅約佔整體人口的 20%？這反映了哪一項障礙？',
+          choices: [
+            { text: '反映「障礙（1）：社會嚮應及適應程度較慢」——包括「數碼鴻溝」（長者 50% 欠數字自信、18% 低收入家庭無穩定網絡）及不少市民屬「數碼娛樂型/消閑型用戶」（只用於社交媒體、遊戲、視頻觀看）', correct: true },
+            { text: '因為香港智能手機普及率只有 20%，其餘 80% 市民從未使用過智能電話', correct: false },
+            { text: '因為政府從未推出任何智慧交通或一站式服務應用程式', correct: false }
+          ],
+          explanation: '解析：導學案頁 10-11 指出，雖然香港智能電話普及，但（1）存在「數碼鴻溝」（65 歲或以上 50% 欠自信、18% 低收入家庭無穩定網絡）；（2）不少市民屬「數碼娛樂型/消閑型用戶」，主要用手機進行娛樂（社交媒體、遊戲、視頻）而非生活功能性應用，導致整體活躍用戶僅佔 20%。',
+          sourceUrl: 'https://www.info.gov.hk/gia/general/202012/10/P2020121000631.htm',
+          sourceTitle: '香港智慧城市藍圖 2.0：智慧市民與中學 IT 創新實驗室'
+        }
+      },
+      {
+        id: 7,
+        shortName: '金科旅遊・數字孿生與素養',
+        name: '金融科技中心及大澳智慧旅遊區（智慧經濟、數字孿生與資訊素養）',
+        category: '智慧經濟 / 資訊素養',
+        pos: { x: 12, z: 2 },
+        color: 0xc084fc,
+        baseDesc: '《藍圖》智慧經濟包括虛擬銀行、「銀行易」、「積金易」、智慧旅遊「城市景昔」及大澳人流資訊；政府亦利用「數字孿生城市」應對每月 535 萬人次北上（流失 40 億消費額），並推廣資訊素養防範 Deepfake 詐騙。',
+        roundTitle: '智慧經濟與最終挑戰：數字孿生留港消費及防範 Deepfake 危機',
+        statHighlight: '每月 535 萬人次北上・估計流失消費 40 億元',
+        scenario: '進入最後規劃階段！一方面，政府透過「數字孿生城市」（Digital Twin City）大數據掌握每個月均有 535 萬人次北上，估計流失消費額達 40 億元；另一方面，在發展網上虛擬銀行、「銀行易」、「積金易」及智慧旅遊（「城市景昔」、大澳人流資訊）的同時，社會出現利用 AI 深度偽造（Deepfake）冒充跨國公司高層視訊會議詐騙巨額轉帳，以及演算法「資訊繭房」（同溫層）推播假健康資訊的危機！你會如何整合規劃？',
+        options: [
+          {
+            id: 'A',
+            title: '方案 A：運用「數字孿生」模擬推出智慧旅遊（「城市景昔」/大澳人流管理）留港消費措施 + 推行全民「資訊素養」教育',
+            desc: '發展虛擬銀行與「積金易」，以大數據模擬精準推出留港消費與智慧旅遊體驗；同時教導市民「多重驗證」防範 Deepfake 詐騙、遵守《個人資料（私隱）條例》及恪守「先求證、後轉發」。',
+            cost: 16,
+            effects: { infra: 10, trust: 14, inclusion: 12, economy: 16 },
+            feedback: '完美收官！你成功將大數據「數字孿生城市」應用於精細化管理（應對 535 萬人次北上與 40 億消費流失），落實「智慧經濟」措施，並鞏固市民「辨識與評估資訊、法律規範與個人責任、數字公民道德」三大資訊素養！'
+          },
+          {
+            id: 'B',
+            title: '方案 B：只發展虛擬銀行與「積金易」，忽視北上消費數據模擬及 Deepfake 防騙教育',
+            desc: '專注金融科技硬件，不處理旅遊人流管理及網絡假資訊問題。',
+            cost: 8,
+            effects: { infra: 6, trust: -6, inclusion: -2, economy: 4 },
+            feedback: '有所欠缺！未能善用「數字孿生城市」啟發創新以挽留 40 億元流失消費，且缺乏資訊素養教育會令市民暴露於 Deepfake 詐騙風險。'
+          },
+          {
+            id: 'C',
+            title: '方案 C：為防止 Deepfake 詐騙而限制虛擬銀行及電子支付轉帳功能',
+            desc: '大幅調低所有網上銀行額度並暫停智慧旅遊應用。',
+            cost: 4,
+            effects: { infra: -4, trust: 2, inclusion: -4, economy: -12 },
+            feedback: '本末倒置！防範 Deepfake 應靠「多重驗證」及查證資訊來源權威性，限制金融科技會嚴重打擊「智慧經濟」發展。'
+          }
+        ],
+        quiz: {
+          question: '根據《導學案 02》頁 5、頁 6 及頁 12-13，下列哪一項關於「數字孿生城市」、「智慧經濟」及「資訊素養」的敘述完全正確？',
+          choices: [
+            { text: '政府可憑「數字孿生城市」大數據模擬每月 535 萬人次北上（流失 40 億元消費）的趨勢並推出留港消費措施；同時青年人須具備「辨識與評估資訊（防範 Deepfake 及資訊繭房）」、「法律規範與個人責任」、「數字公民道德與網絡倫理」三大資訊素養', correct: true },
+            { text: '面對跨國公司高層視訊會議邀請（Deepfake 詐騙），員工應立即單憑視訊畫面轉帳巨額款項，無須多重驗證', correct: false },
+            { text: '「城市景昔」與「積金易」屬於「智慧環境」範疇下的污染監測措施', correct: false }
+          ],
+          explanation: '解析：導學案頁 5 指出政府掌握每月 535 萬人次北上、估計流失消費額 40 億元，可憑「數字孿生城市」大數據模擬趨勢推出鼓勵留港消費措施；頁 6 列明「城市景昔、大澳人流資訊、虛擬銀行、銀行易、積金易」屬【智慧經濟】；頁 12-13 總結資訊素養三大範疇：辨識與評估資訊、法律規範與個人責任、數字公民道德與網絡倫理。',
+          sourceUrl: 'https://www.digitalpolicy.gov.hk/tc/our_work/digital_government/business_facilitation/business_facilitation_advisory_committee/business_facilitation_advisory_committee/doc/Chi_44BFAC_Paper_2_21.pdf',
+          sourceTitle: '數字政策辦公室：《香港智慧城市藍圖 2.0》文件'
+        }
+      }
     ];
 
-    function startGame() {
-        player = document.getElementById("playerName").value.trim();
-        if(!player) { 
-            alert("請輸入你的姓名才能開始規劃！"); 
-            return; 
+    // 導學案頁 7：香港與新加坡智慧城市比較數據 (2021 基準)
+    const HK_SG_COMPARISON = [
+      {
+        metric: '國際管理發展學院排名 (IMD)',
+        category: '整體國際排名',
+        hk2021: '第 41 位',
+        sg2021: '第 1 位',
+        hkBaseNum: 41,
+        sgBaseNum: 1,
+        isRank: true,
+        dynamicFn: (state) => {
+          const avg = Math.round((state.infra + state.trust + state.inclusion + state.economy) / 4);
+          const rank = Math.max(1, Math.round(41 - Math.max(0, avg - 46) * 0.85));
+          return `第 ${rank} 位`;
         }
-        document.getElementById("login-screen").style.display = "none";
-        document.getElementById("game-screen").style.display = "block";
-        document.getElementById("mayorName").innerText = player;
-        updateStats();
-        loadScenario();
+      },
+      {
+        metric: '策略研究所排名 (EDI)',
+        category: '整體國際排名',
+        hk2021: '第 41 位',
+        sg2021: '第 1 位',
+        hkBaseNum: 41,
+        sgBaseNum: 1,
+        isRank: true,
+        dynamicFn: (state) => {
+          const avg = Math.round((state.infra + state.trust + state.inclusion + state.economy) / 4);
+          const rank = Math.max(1, Math.round(41 - Math.max(0, avg - 46) * 0.82));
+          return `第 ${rank} 位`;
+        }
+      },
+      {
+        metric: '數碼個人身份覆蓋率（如「智方便」）',
+        category: '市民「智慧化」程度 / 智慧政府',
+        hk2021: '19%',
+        sg2021: '97%',
+        hkBasePct: 19,
+        sgBasePct: 97,
+        dynamicFn: (state) => `${Math.min(98, Math.round(19 + (state.inclusion - 40) * 0.75 + (state.economy - 50) * 0.6))}%`
+      },
+      {
+        metric: '接受使用人臉識別技術以減罪案',
+        category: '市民「智慧化」程度（私隱信任）',
+        hk2021: '46%',
+        sg2021: '73%',
+        hkBasePct: 46,
+        sgBasePct: 73,
+        dynamicFn: (state) => `${Math.min(92, Math.max(25, Math.round(46 + (state.trust - 48) * 0.65)))}%`
+      },
+      {
+        metric: '願意提供個人資料以改善交通擠塞情況',
+        category: '市民「智慧化」程度（數據共享）',
+        hk2021: '60%',
+        sg2021: '67%',
+        hkBasePct: 60,
+        sgBasePct: 67,
+        dynamicFn: (state) => `${Math.min(95, Math.max(35, Math.round(60 + (state.trust - 48) * 0.5)))}%`
+      },
+      {
+        metric: '公共交通智慧化程度（實時資訊、電子收費、智慧交通燈柱）',
+        category: '智慧基礎建設（軟硬件）',
+        hk2021: '60%',
+        sg2021: '90%',
+        hkBasePct: 60,
+        sgBasePct: 90,
+        dynamicFn: (state) => `${Math.min(98, Math.max(50, Math.round(60 + (state.infra - 45) * 0.65)))}%`
+      },
+      {
+        metric: '物聯網 (IoT) 部署（預計 2025 年數量）',
+        category: '智慧基礎建設（軟硬件）',
+        hk2021: '約 300 萬台',
+        sg2021: '約 1000 萬台',
+        hkBasePct: 30,
+        sgBasePct: 100,
+        dynamicFn: (state) => `約 ${Math.min(1200, Math.max(250, Math.round(300 + (state.infra - 45) * 12)))} 萬台`
+      },
+      {
+        metric: '建築物符合綠色建築標準，並推動智能電網技術應用',
+        category: '智慧基礎建設（軟硬件）',
+        hk2021: '25%',
+        sg2021: '40%',
+        hkBasePct: 25,
+        sgBasePct: 40,
+        dynamicFn: (state) => `${Math.min(85, Math.max(20, Math.round(25 + (state.infra - 45) * 0.5)))}%`
+      }
+    ];
+
+    // ==========================================
+    // 3. 遊戲狀態管理 (In-Memory + Safe LocalStorage)
+    // ==========================================
+    const STORAGE_KEY = 'hk_smart_city_planner_v1';
+
+    let gameState = {
+      playerName: '',
+      playerClass: '',
+      started: false,
+      currentZoneId: 0,
+      infra: 45,
+      trust: 48,
+      inclusion: 40,
+      economy: 50,
+      budget: 120,
+      quizScore: 0,
+      digitalTwinMode: false,
+      nightMode: false,
+      encycTab: 'advantages',
+      // 每個城區的完成狀態：{ policyId, quizAnswered, quizCorrect, upgradeLevel, extra5G, extraPrivacy, extraCommunity }
+      zoneProgress: {},
+      logs: []
+    };
+
+    function initDefaultZoneProgress() {
+      CITY_ZONES.forEach(z => {
+        gameState.zoneProgress[z.id] = {
+          policyId: null,
+          quizAnswered: false,
+          quizCorrect: false,
+          upgradeLevel: 1,
+          extra5G: 0,
+          extraPrivacy: 0,
+          extraCommunity: 0
+        };
+      });
+    }
+    initDefaultZoneProgress();
+
+    function saveGameState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(gameState));
+      } catch (e) {}
     }
 
-    function updateStats() {
-        // UI color hints
-        document.getElementById("budget").innerText = budget;
-        document.getElementById("budget").style.color = budget < 30 ? "red" : "black";
-        
-        document.getElementById("trust").innerText = trust;
-        document.getElementById("trust").style.color = trust < 40 ? "red" : "black";
-        
-        document.getElementById("smart").innerText = smart;
-        document.getElementById("smart").style.color = "var(--primary-color)";
+    function loadGameState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && parsed.zoneProgress) {
+          gameState = Object.assign(gameState, parsed);
+          return true;
+        }
+      } catch (e) {}
+      return false;
     }
 
-    function loadScenario() {
-        if(currentTurn >= scenarios.length) {
-            endGame(true);
-            return;
-        }
-        // Check failure conditions before next turn
-        if (trust <= 0) {
-            endGame(false, "市民對你的施政完全失去信心，引發大規模抗議，你被迫引咎辭職！");
-            return;
-        }
-        if (budget < 0) {
-            endGame(false, "政府預算嚴重超支，引發經濟危機，智慧城市計劃被迫全面終止！");
-            return;
-        }
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      const text = document.getElementById('toastText');
+      if (!toast || !text) return;
+      text.innerHTML = msg;
+      toast.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3600);
+    }
 
-        let s = scenarios[currentTurn];
-        document.getElementById("scenario-title").innerText = s.title;
-        document.getElementById("scenario-desc").innerText = s.description;
-        document.getElementById("scenario-adv").innerText = s.advantages;
-        document.getElementById("scenario-obs").innerText = s.obstacles;
+    // ==========================================
+    // 4. Three.js 3D 香港智慧城市沙盤引擎
+    // ==========================================
+    let scene, camera, renderer, animFrameId;
+    let zoneMeshes = {}; // { zoneId: { group, mainBuilding, beacon, upgradeGroup, ring } }
+    let vehicles = [];
+    let boats = [];
+    let waterMesh = null;
+    let gridHelper = null;
+    let ambientLight, dirLight;
 
-        let btnContainer = document.getElementById("choices");
-        btnContainer.innerHTML = "";
-        
-        s.choices.forEach(choice => {
-            let btn = document.createElement("button");
-            btn.innerText = choice.text;
-            btn.onclick = () => makeChoice(choice, s.title);
-            btnContainer.appendChild(btn);
+    // 鏡頭球座標控制
+    let camState = {
+      theta: 0.65,
+      phi: 0.92,
+      radius: 46,
+      targetX: 0,
+      targetZ: 0,
+      isDragging: false,
+      prevX: 0,
+      prevY: 0
+    };
+
+    function initThreeCity() {
+      const container = document.getElementById('cityCanvasContainer');
+      if (!container || typeof THREE === 'undefined') return;
+
+      const width = container.clientWidth || 640;
+      const height = container.clientHeight || 420;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0c192c);
+      scene.fog = new THREE.FogExp2(0x0c192c, 0.0085);
+
+      camera = new THREE.PerspectiveCamera(42, width / height, 0.5, 250);
+      updateCameraPosition();
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.shadowMap.enabled = true;
+      container.innerHTML = '';
+      container.appendChild(renderer.domElement);
+
+      // 燈光設定
+      ambientLight = new THREE.AmbientLight(0xdbeafe, 0.78);
+      scene.add(ambientLight);
+
+      dirLight = new THREE.DirectionalLight(0xfffbeb, 0.95);
+      dirLight.position.set(32, 48, 26);
+      dirLight.castShadow = true;
+      scene.add(dirLight);
+
+      // 1. 維多利亞港海面
+      const waterGeo = new THREE.PlaneGeometry(90, 90, 24, 24);
+      const waterMat = new THREE.MeshPhongMaterial({
+        color: 0x0369a1,
+        emissive: 0x082f49,
+        shininess: 90,
+        transparent: true,
+        opacity: 0.92
+      });
+      waterMesh = new THREE.Mesh(waterGeo, waterMat);
+      waterMesh.rotation.x = -Math.PI / 2;
+      waterMesh.position.y = -0.4;
+      scene.add(waterMesh);
+
+      // 數字孿生全息網格 (預設隱藏，開啟 Digital Twin 時強化)
+      gridHelper = new THREE.GridHelper(76, 38, 0x38bdf8, 0x1e3a8a);
+      gridHelper.position.y = 0.05;
+      gridHelper.visible = false;
+      scene.add(gridHelper);
+
+      // 2. 九龍半島陸地 (北岸 z < -4) 與 香港島陸地 (南岸 z > 4) 及 大嶼山/生態島
+      const landMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+      const grassMat = new THREE.MeshLambertMaterial({ color: 0x14532d });
+
+      // 九龍及新界北陸塊
+      const kowloonGeo = new THREE.BoxGeometry(58, 1.4, 22);
+      const kowloonMesh = new THREE.Mesh(kowloonGeo, landMat);
+      kowloonMesh.position.set(0, -0.3, -15);
+      scene.add(kowloonMesh);
+
+      // 香港島及南區陸塊
+      const hkIslandGeo = new THREE.BoxGeometry(58, 1.4, 22);
+      const hkIslandMesh = new THREE.Mesh(hkIslandGeo, landMat);
+      hkIslandMesh.position.set(0, -0.3, 15);
+      scene.add(hkIslandMesh);
+
+      // 東側生態山體與水塘綠地
+      const hillGeo = new THREE.ConeGeometry(8, 7, 6);
+      const hill1 = new THREE.Mesh(hillGeo, grassMat);
+      hill1.position.set(23, 3.2, 16);
+      scene.add(hill1);
+
+      // 3. 道路網與跨海大橋/海底隧道走廊
+      const roadMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
+      const road1 = new THREE.Mesh(new THREE.BoxGeometry(52, 0.12, 2.6), roadMat);
+      road1.position.set(0, 0.42, -9);
+      scene.add(road1);
+
+      const road2 = new THREE.Mesh(new THREE.BoxGeometry(52, 0.12, 2.6), roadMat);
+      road2.position.set(0, 0.42, 9);
+      scene.add(road2);
+
+      // 跨海隧道連接橋面
+      const crossRoad = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.25, 20), roadMat);
+      crossRoad.position.set(2, 0.45, 0);
+      scene.add(crossRoad);
+
+      // 4. 背景裝飾城市建築群
+      const bgBldgMat = new THREE.MeshPhongMaterial({ color: 0x334155, flatShading: true });
+      const bgPositions = [
+        [-25, -18, 3, 7, 3], [-10, -20, 3.5, 9, 3.5], [8, -19, 3, 8, 3], [24, -18, 3, 6, 3],
+        [-25, 19, 3, 6, 3], [-11, 20, 3, 8, 3], [8, 20, 3.5, 7, 3.5]
+      ];
+      bgPositions.forEach(([bx, bz, bw, bh, bd]) => {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), bgBldgMat);
+        m.position.set(bx, bh / 2 + 0.4, bz);
+        scene.add(m);
+      });
+
+      // 5. 建立 8 大核心智慧城市地標地塊
+      CITY_ZONES.forEach(zone => {
+        createZone3DLandmark(zone);
+      });
+
+      // 6. 建立動態道路車輛與維港船隻
+      createAnimatedTraffic();
+      createHarbourBoats();
+
+      // 7. 綁定滑鼠與觸控互動事件
+      setupCanvasInteractions(renderer.domElement);
+
+      // 8. 產生浮動地標 HTML 標籤
+      createZoneHtmlMarkers();
+
+      // 啟動渲染循環
+      if (animFrameId) cancelAnimationFrame(animFrameId);
+      animateThreeScene();
+    }
+
+    function createZone3DLandmark(zone) {
+      const group = new THREE.Group();
+      group.position.set(zone.pos.x, 0.4, zone.pos.z);
+      group.userData = { zoneId: zone.id };
+
+      // 底座平台
+      const padGeo = new THREE.CylinderGeometry(4.4, 4.7, 0.35, 24);
+      const padMat = new THREE.MeshPhongMaterial({
+        color: 0x1e293b,
+        emissive: zone.color,
+        emissiveIntensity: 0.18
+      });
+      const pad = new THREE.Mesh(padGeo, padMat);
+      pad.position.y = 0.18;
+      pad.userData = { zoneId: zone.id };
+      group.add(pad);
+
+      // 發光外環
+      const ringGeo = new THREE.RingGeometry(4.5, 4.95, 32);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: zone.color,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.75
+      });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = 0.38;
+      group.add(ring);
+
+      // 主建築模型依各區特色造型
+      const mainMat = new THREE.MeshPhongMaterial({
+        color: zone.color,
+        shininess: 80
+      });
+      let mainBuilding;
+
+      if (zone.id === 0) {
+        // 中環摩天大樓 + 5G 訊號塔
+        mainBuilding = new THREE.Group();
+        const tower1 = new THREE.Mesh(new THREE.BoxGeometry(2.4, 9.5, 2.4), mainMat);
+        tower1.position.set(-0.8, 4.8, 0);
+        const tower2 = new THREE.Mesh(new THREE.BoxGeometry(2.0, 7.0, 2.0), new THREE.MeshPhongMaterial({ color: 0x0284c7 }));
+        tower2.position.set(1.4, 3.5, 0.6);
+        mainBuilding.add(tower1, tower2);
+      } else if (zone.id === 1) {
+        // 數碼港 AI 超算中心 (圓頂科技核心)
+        mainBuilding = new THREE.Group();
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 3.2, 3.2, 16), mainMat);
+        base.position.y = 1.6;
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(2.4, 16, 12), new THREE.MeshPhongMaterial({ color: 0xa5b4fc, wireframe: true }));
+        dome.position.y = 3.4;
+        mainBuilding.add(base, dome);
+      } else if (zone.id === 2) {
+        // 政府總部門廊造型大樓
+        mainBuilding = new THREE.Group();
+        const leftPillar = new THREE.Mesh(new THREE.BoxGeometry(1.4, 6.2, 2.2), mainMat);
+        leftPillar.position.set(-1.3, 3.1, 0);
+        const rightPillar = new THREE.Mesh(new THREE.BoxGeometry(1.4, 6.2, 2.2), mainMat);
+        rightPillar.position.set(1.3, 3.1, 0);
+        const topBridge = new THREE.Mesh(new THREE.BoxGeometry(4.0, 1.6, 2.2), mainMat);
+        topBridge.position.set(0, 5.6, 0);
+        mainBuilding.add(leftPillar, rightPillar, topBridge);
+      } else if (zone.id === 3) {
+        // 海底隧道易通行龍門架與智慧巴士站
+        mainBuilding = new THREE.Group();
+        const archLeft = new THREE.Mesh(new THREE.BoxGeometry(0.6, 4.2, 0.6), mainMat);
+        archLeft.position.set(-2.1, 2.1, 0);
+        const archRight = new THREE.Mesh(new THREE.BoxGeometry(0.6, 4.2, 0.6), mainMat);
+        archRight.position.set(2.1, 2.1, 0);
+        const gantry = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.9, 1.0), mainMat);
+        gantry.position.set(0, 4.0, 0);
+        mainBuilding.add(archLeft, archRight, gantry);
+      } else if (zone.id === 4) {
+        // 智慧醫院 (十字標誌大樓) 與街市
+        mainBuilding = new THREE.Group();
+        const hosp = new THREE.Mesh(new THREE.BoxGeometry(2.8, 5.5, 2.4), mainMat);
+        hosp.position.set(-0.6, 2.75, 0);
+        const market = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.6, 2.2), new THREE.MeshPhongMaterial({ color: 0xfb7185 }));
+        market.position.set(1.6, 1.3, 0.8);
+        mainBuilding.add(hosp, market);
+      } else if (zone.id === 5) {
+        // 智慧環境：綠建築與生態水塘無人船
+        mainBuilding = new THREE.Group();
+        const ecoTower = new THREE.Mesh(new THREE.BoxGeometry(2.2, 6.0, 2.2), mainMat);
+        ecoTower.position.set(-1.0, 3.0, 0);
+        const pond = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 0.3, 16), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+        pond.position.set(1.5, 0.3, 0.8);
+        mainBuilding.add(ecoTower, pond);
+      } else if (zone.id === 6) {
+        // 學校 IT 創新實驗室與社區中心
+        mainBuilding = new THREE.Group();
+        const school = new THREE.Mesh(new THREE.BoxGeometry(3.4, 3.8, 2.2), mainMat);
+        school.position.set(0, 1.9, 0);
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(2.6, 1.8, 4), new THREE.MeshPhongMaterial({ color: 0xfacc15 }));
+        roof.position.set(0, 4.6, 0);
+        roof.rotation.y = Math.PI / 4;
+        mainBuilding.add(school, roof);
+      } else {
+        // 金融科技與智慧旅遊地標
+        mainBuilding = new THREE.Group();
+        const finTower = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 2.2, 7.8, 6), mainMat);
+        finTower.position.set(0, 3.9, 0);
+        mainBuilding.add(finTower);
+      }
+
+      // 為子網格標記 zoneId 供 Raycaster 點擊識別
+      mainBuilding.traverse(child => {
+        if (child.isMesh) child.userData = { zoneId: zone.id };
+      });
+      group.add(mainBuilding);
+
+      // 頂部旋轉水晶信標
+      const beaconGeo = new THREE.OctahedronGeometry(0.75, 0);
+      const beaconMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: false });
+      const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+      beacon.position.y = 8.6;
+      beacon.userData = { zoneId: zone.id };
+      group.add(beacon);
+
+      // 升級特效組 (完成決策或自主增建時顯示 3D 智慧燈柱、5G 光環、太陽能板等)
+      const upgradeGroup = new THREE.Group();
+      group.add(upgradeGroup);
+
+      scene.add(group);
+      zoneMeshes[zone.id] = { group, mainBuilding, beacon, upgradeGroup, ring, padMat };
+    }
+
+    // 當某區域完成規劃或加建設施時，在 3D 城市中即時生成視覺模型
+    function refreshZone3DUpgrades(zoneId) {
+      const zm = zoneMeshes[zoneId];
+      const prog = gameState.zoneProgress[zoneId];
+      const zone = CITY_ZONES[zoneId];
+      if (!zm || !prog) return;
+
+      // 清除舊升級模型
+      while (zm.upgradeGroup.children.length > 0) {
+        zm.upgradeGroup.remove(zm.upgradeGroup.children[0]);
+      }
+
+      // 若已完成該回合決策，加建發光能量環與智慧燈柱
+      if (prog.policyId) {
+        const glowRingGeo = new THREE.TorusGeometry(3.4, 0.14, 12, 32);
+        const glowRingMat = new THREE.MeshBasicMaterial({ color: 0x34d399 });
+        const glowRing = new THREE.Mesh(glowRingGeo, glowRingMat);
+        glowRing.rotation.x = Math.PI / 2;
+        glowRing.position.y = 1.2;
+        zm.upgradeGroup.add(glowRing);
+
+        // 4 支多功能智慧燈柱
+        const polePositions = [[2.8, 2.8], [-2.8, 2.8], [2.8, -2.8], [-2.8, -2.8]];
+        polePositions.forEach(([px, pz]) => {
+          const pole = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.08, 0.1, 2.6, 8),
+            new THREE.MeshBasicMaterial({ color: 0xe2e8f0 })
+          );
+          pole.position.set(px, 1.3, pz);
+          const lamp = new THREE.Mesh(
+            new THREE.SphereGeometry(0.24, 8, 8),
+            new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
+          );
+          lamp.position.set(px, 2.7, pz);
+          zm.upgradeGroup.add(pole, lamp);
         });
+      }
+
+      // 額外增建 5G 基站天線
+      for (let i = 0; i < prog.extra5G; i++) {
+        const antenna = new THREE.Mesh(
+          new THREE.ConeGeometry(0.4, 2.2, 6),
+          new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true })
+        );
+        antenna.position.set(-3.2 + i * 1.2, 1.5, -3.2);
+        zm.upgradeGroup.add(antenna);
+      }
+
+      // 額外增建私隱防護盾光罩
+      if (prog.extraPrivacy > 0) {
+        const shield = new THREE.Mesh(
+          new THREE.SphereGeometry(4.1, 16, 12),
+          new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true, transparent: true, opacity: 0.25 })
+        );
+        shield.position.y = 2.5;
+        zm.upgradeGroup.add(shield);
+      }
+
+      // 額外增建社區數碼共融站
+      for (let i = 0; i < prog.extraCommunity; i++) {
+        const kiosk = new THREE.Mesh(
+          new THREE.BoxGeometry(0.8, 1.4, 0.8),
+          new THREE.MeshPhongMaterial({ color: 0xfbbf24 })
+        );
+        kiosk.position.set(3.2, 0.7, -2.5 + i * 1.3);
+        zm.upgradeGroup.add(kiosk);
+      }
     }
 
-    function makeChoice(choice, scenarioTitle) {
-        // Apply effects
-        budget += choice.effect.budget;
-        trust += choice.effect.trust;
-        smart += choice.effect.smart;
-        
-        // Prevent trust from exceeding 100%
-        if(trust > 100) trust = 100;
-        
-        // Add to Log
-        let logContainer = document.getElementById("log");
-        let newLog = document.createElement("p");
-        newLog.innerHTML = `<strong>${scenarioTitle}：</strong>${choice.message} <br><em>(預算 ${choice.effect.budget>0?'+':''}${choice.effect.budget}M, 信任 ${choice.effect.trust>0?'+':''}${choice.effect.trust}%, 智慧 ${choice.effect.smart>0?'+':''}${choice.effect.smart})</em>`;
-        newLog.style.borderBottom = "1px solid #ccc";
-        newLog.style.paddingBottom = "5px";
-        logContainer.prepend(newLog); // add to top
-        
-        currentTurn++;
-        updateStats();
-        
-        // Add a slight delay before loading next scenario for UX
-        setTimeout(() => {
-            if (trust <= 0) {
-                endGame(false, "市民對你的施政完全失去信心，引發大規模社會抗議，你被迫辭去職務！");
-            } else if (budget < 0) {
-                endGame(false, "政府預算嚴重超支，引發經濟危機，智慧城市計劃被迫全面終止！");
-            } else {
-                loadScenario();
-            }
-        }, 300);
+    function createAnimatedTraffic() {
+      vehicles = [];
+      const colors = [0x38bdf8, 0xfbbf24, 0x34d399, 0xf87171];
+      for (let i = 0; i < 10; i++) {
+        const mat = new THREE.MeshBasicMaterial({ color: colors[i % colors.length] });
+        const car = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.45, 0.65), mat);
+        const isNorth = i < 5;
+        car.position.set(-22 + i * 9, 0.72, isNorth ? -9 : 9);
+        scene.add(car);
+        vehicles.push({ mesh: car, speed: (i % 2 === 0 ? 1 : -1) * (0.09 + (i % 3) * 0.03), axis: 'x' });
+      }
     }
 
-    function endGame(completed, reason="") {
-        document.getElementById("game-screen").style.display = "none";
-        document.getElementById("result-screen").style.display = "block";
-        
-        let res = document.getElementById("result-msg");
-        if(!completed) {
-            res.innerHTML = `<h2 style="color:#dc3545;">❌ 發展失敗</h2><p>${reason}</p><p>最終智慧指數：${smart}</p>`;
-        } else {
-            if(smart >= 80 && trust >= 50) {
-                res.innerHTML = `
-                    <h2 style="color:#28a745;">🏆 大獲成功！</h2>
-                    <p>恭喜 <strong>${player}</strong> 規劃師！你成功帶領香港邁向智慧城市，不僅大幅提升了城市效率，還贏得了市民的高度信任。</p>
-                    <p>最終市民信任：<strong>${trust}%</strong> | 最終智慧指數：<strong>${smart}</strong> | 剩餘預算：<strong>${budget}M</strong></p>
-                    <p>你精準地解決了私隱疑慮與數碼鴻溝等障礙，善用了香港的基建優勢！</p>
-                `;
-            } else if (trust >= 50) {
-                res.innerHTML = `
-                    <h2 style="color:#17a2b8;">✅ 穩步發展</h2>
-                    <p><strong>${player}</strong> 規劃師，香港的智慧城市發展取得了一定進展，市民生活亦得到改善。</p>
-                    <p>最終市民信任：<strong>${trust}%</strong> | 最終智慧指數：<strong>${smart}</strong></p>
-                    <p>雖然發展速度較為保守，但成功維繫了社會的和諧。</p>
-                `;
-            } else {
-                res.innerHTML = `
-                    <h2 style="color:#ffc107;">⚠️ 毀譽參半</h2>
-                    <p><strong>${player}</strong> 規劃師，雖然城市的科技水平大幅提升，但過程中忽視了市民感受。</p>
-                    <p>最終市民信任：<strong>${trust}%</strong> | 最終智慧指數：<strong>${smart}</strong></p>
-                    <p>在推動科技的同時，記得要妥善處理「數碼鴻溝」與「隱私安全」等障礙！</p>
-                `;
+    function createHarbourBoats() {
+      boats = [];
+      for (let i = 0; i < 4; i++) {
+        const boatGroup = new THREE.Group();
+        const hull = new THREE.Mesh(
+          new THREE.BoxGeometry(2.6, 0.5, 1.1),
+          new THREE.MeshPhongMaterial({ color: i % 2 === 0 ? 0x059669 : 0xe11d48 })
+        );
+        const cabin = new THREE.Mesh(
+          new THREE.BoxGeometry(1.4, 0.55, 0.85),
+          new THREE.MeshPhongMaterial({ color: 0xffffff })
+        );
+        cabin.position.y = 0.5;
+        boatGroup.add(hull, cabin);
+        boatGroup.position.set(-18 + i * 12, -0.1, -2.5 + (i % 2) * 5);
+        scene.add(boatGroup);
+        boats.push({ mesh: boatGroup, speed: (i % 2 === 0 ? 0.05 : -0.05) });
+      }
+    }
+
+    function updateCameraPosition() {
+      if (!camera) return;
+      const x = camState.targetX + camState.radius * Math.sin(camState.phi) * Math.sin(camState.theta);
+      const y = camState.radius * Math.cos(camState.phi);
+      const z = camState.targetZ + camState.radius * Math.sin(camState.phi) * Math.cos(camState.theta);
+      camera.position.set(x, Math.max(6, y), z);
+      camera.lookAt(camState.targetX, 1.5, camState.targetZ);
+    }
+
+    function setupCanvasInteractions(domElement) {
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      let downX = 0, downY = 0;
+
+      domElement.addEventListener('pointerdown', (e) => {
+        camState.isDragging = true;
+        camState.prevX = e.clientX;
+        camState.prevY = e.clientY;
+        downX = e.clientX;
+        downY = e.clientY;
+      });
+
+      window.addEventListener('pointermove', (e) => {
+        if (!camState.isDragging) return;
+        const dx = e.clientX - camState.prevX;
+        const dy = e.clientY - camState.prevY;
+        camState.prevX = e.clientX;
+        camState.prevY = e.clientY;
+        camState.theta -= dx * 0.007;
+        camState.phi = Math.max(0.35, Math.min(1.32, camState.phi - dy * 0.006));
+        updateCameraPosition();
+      });
+
+      window.addEventListener('pointerup', (e) => {
+        if (!camState.isDragging) return;
+        camState.isDragging = false;
+        const dist = Math.hypot(e.clientX - downX, e.clientY - downY);
+        if (dist < 6) {
+          // 視為點擊，執行 Raycaster 檢測地標
+          const rect = domElement.getBoundingClientRect();
+          mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+          raycaster.setFromCamera(mouse, camera);
+          const hits = raycaster.intersectObjects(scene.children, true);
+          for (const hit of hits) {
+            if (hit.object && hit.object.userData && typeof hit.object.userData.zoneId === 'number') {
+              selectCityZone(hit.object.userData.zoneId, true);
+              break;
             }
+          }
         }
-    }
-</script>
+      });
 
+      domElement.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        camState.radius = Math.max(22, Math.min(72, camState.radius + (e.deltaY > 0 ? 3 : -3)));
+        updateCameraPosition();
+      }, { passive: false });
+
+      window.addEventListener('resize', () => {
+        const container = document.getElementById('cityCanvasContainer');
+        if (!container || !renderer || !camera) return;
+        const w = container.clientWidth || 640;
+        const h = container.clientHeight || 420;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      });
+    }
+
+    function createZoneHtmlMarkers() {
+      const overlay = document.getElementById('zoneLabelsOverlay');
+      if (!overlay) return;
+      overlay.innerHTML = '';
+      CITY_ZONES.forEach(zone => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = `markerZone_${zone.id}`;
+        btn.className = 'zone-marker absolute px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold shadow-md border backdrop-blur-sm flex items-center gap-1 transition';
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectCityZone(zone.id, true);
+        });
+        overlay.appendChild(btn);
+      });
+      updateZoneHtmlMarkersContent();
+    }
+
+    function updateZoneHtmlMarkersContent() {
+      CITY_ZONES.forEach(zone => {
+        const btn = document.getElementById(`markerZone_${zone.id}`);
+        if (!btn) return;
+        const prog = gameState.zoneProgress[zone.id];
+        const isSelected = gameState.currentZoneId === zone.id;
+        const isDone = Boolean(prog && prog.policyId);
+
+        if (isSelected) {
+          btn.className = 'zone-marker absolute px-2.5 py-1 rounded-full text-[11px] font-extrabold shadow-lg border bg-sky-500 text-white border-white z-20 flex items-center gap-1';
+        } else if (isDone) {
+          btn.className = 'zone-marker absolute px-2 py-0.5 rounded-full text-[10px] font-bold shadow border bg-emerald-950/90 text-emerald-300 border-emerald-400/60 z-10 flex items-center gap-1';
+        } else {
+          btn.className = 'zone-marker absolute px-2 py-0.5 rounded-full text-[10px] font-semibold shadow border bg-slate-900/85 text-slate-200 border-slate-600/80 z-10 flex items-center gap-1';
+        }
+        btn.innerHTML = `<span>${isDone ? '✓' : (zone.id + 1)}</span><span>${zone.shortName}</span>`;
+      });
+    }
+
+    function updateZoneMarkersScreenCoords() {
+      const container = document.getElementById('cityCanvasContainer');
+      if (!container || !camera) return;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      const vec = new THREE.Vector3();
+
+      CITY_ZONES.forEach(zone => {
+        const btn = document.getElementById(`markerZone_${zone.id}`);
+        const zm = zoneMeshes[zone.id];
+        if (!btn || !zm) return;
+        vec.set(zone.pos.x, 9.6, zone.pos.z);
+        vec.project(camera);
+        if (vec.z > 1) {
+          btn.style.display = 'none';
+        } else {
+          btn.style.display = 'flex';
+          const sx = (vec.x * 0.5 + 0.5) * width;
+          const sy = (-(vec.y * 0.5) + 0.5) * height;
+          btn.style.left = `${sx}px`;
+          btn.style.top = `${sy}px`;
+        }
+      });
+    }
+
+    function animateThreeScene() {
+      animFrameId = requestAnimationFrame(animateThreeScene);
+      const t = performance.now() * 0.002;
+
+      // 旋轉地標信標與選中區光環縮放
+      CITY_ZONES.forEach(zone => {
+        const zm = zoneMeshes[zone.id];
+        if (!zm) return;
+        zm.beacon.rotation.y = t * 1.4;
+        zm.beacon.position.y = 8.5 + Math.sin(t * 2 + zone.id) * 0.35;
+        const isSelected = gameState.currentZoneId === zone.id;
+        const s = isSelected ? 1.15 + Math.sin(t * 4) * 0.06 : 1.0;
+        zm.ring.scale.set(s, s, 1);
+      });
+
+      // 道路車輛移動
+      vehicles.forEach(v => {
+        v.mesh.position.x += v.speed;
+        if (v.mesh.position.x > 25) v.mesh.position.x = -25;
+        if (v.mesh.position.x < -25) v.mesh.position.x = 25;
+      });
+
+      // 維港渡輪移動
+      boats.forEach((b, i) => {
+        b.mesh.position.x += b.speed;
+        b.mesh.position.y = -0.1 + Math.sin(t * 2 + i) * 0.06;
+        if (b.mesh.position.x > 26) b.mesh.position.x = -26;
+        if (b.mesh.position.x < -26) b.mesh.position.x = 26;
+      });
+
+      updateZoneMarkersScreenCoords();
+      if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+      }
+    }
+
+    // ==========================================
+    // 5. UI 渲染與互動邏輯
+    // ==========================================
+    function selectCityZone(zoneId, panCamera = false) {
+      SoundFX.click();
+      gameState.currentZoneId = zoneId;
+      const zone = CITY_ZONES[zoneId];
+
+      if (panCamera && zone) {
+        camState.targetX = zone.pos.x * 0.45;
+        camState.targetZ = zone.pos.z * 0.45;
+        updateCameraPosition();
+      }
+
+      updateZoneHtmlMarkersContent();
+      renderZoneInspector();
+      renderDecisionPanel();
+      saveGameState();
+    }
+
+    function renderHudMetrics() {
+      const clamp = (v) => Math.max(0, Math.min(100, Math.round(v)));
+      gameState.infra = clamp(gameState.infra);
+      gameState.trust = clamp(gameState.trust);
+      gameState.inclusion = clamp(gameState.inclusion);
+      gameState.economy = clamp(gameState.economy);
+
+      const totalIndex = Math.round((gameState.infra + gameState.trust + gameState.inclusion + gameState.economy) / 4);
+      const completedCount = Object.values(gameState.zoneProgress).filter(p => p && p.policyId).length;
+      const activeUsersPct = Math.min(88, Math.max(15, Math.round(20 + (gameState.inclusion - 40) * 0.7 + (gameState.trust - 48) * 0.4)));
+      const simRank = Math.max(1, Math.round(41 - Math.max(0, totalIndex - 46) * 0.85));
+
+      document.getElementById('valInfra').textContent = `${gameState.infra}/100`;
+      document.getElementById('barInfra').style.width = `${gameState.infra}%`;
+
+      document.getElementById('valTrust').textContent = `${gameState.trust}/100`;
+      document.getElementById('barTrust').style.width = `${gameState.trust}%`;
+
+      document.getElementById('valInclusion').textContent = `${gameState.inclusion}/100`;
+      document.getElementById('barInclusion').style.width = `${gameState.inclusion}%`;
+
+      document.getElementById('valEconomy').textContent = `${gameState.economy}/100`;
+      document.getElementById('barEconomy').style.width = `${gameState.economy}%`;
+
+      document.getElementById('valBudget').textContent = `${gameState.budget} 億`;
+      document.getElementById('valActiveUsers').textContent = `${activeUsersPct}%`;
+      document.getElementById('valRoundProgress').textContent = `${completedCount}/8`;
+      document.getElementById('valQuizScore').textContent = `${gameState.quizScore}`;
+      document.getElementById('valTotalIndex').textContent = `${totalIndex}`;
+      document.getElementById('mobileHudSummary').textContent = `${totalIndex}`;
+      document.getElementById('valRankSimulated').textContent = `第 ${simRank} 位 (IMD)`;
+      document.getElementById('builtZonesCountText').textContent = `已升級城區：${completedCount} / 8`;
+      document.getElementById('badgeLogCount').textContent = `${gameState.logs.length}`;
+
+      let statusTag = '基建領先・市民適應待提升';
+      if (totalIndex >= 80) statusTag = '🌟 國際頂尖智慧共融都會';
+      else if (totalIndex >= 68) statusTag = '🚀 軟硬兼備・市民高度信任';
+      else if (gameState.trust < 40) statusTag = '⚠️ 私隱信任危機・需加強保障';
+      else if (gameState.inclusion < 40) statusTag = '⚠️ 數碼鴻溝明顯・需支援長者基層';
+      document.getElementById('valCityStatusTag').textContent = statusTag;
+
+      const navName = document.getElementById('navPlayerName');
+      if (navName) {
+        navName.textContent = gameState.playerName
+          ? `${gameState.playerName}${gameState.playerClass ? ' (' + gameState.playerClass + ')' : ''}`
+          : '未登入規劃師';
+      }
+    }
+
+    function renderZoneInspector() {
+      const zone = CITY_ZONES[gameState.currentZoneId];
+      const prog = gameState.zoneProgress[zone.id];
+      if (!zone) return;
+
+      document.getElementById('selectedZoneTitle').textContent = zone.shortName;
+      const totalUpgrades = (prog.policyId ? 1 : 0) + prog.extra5G + prog.extraPrivacy + prog.extraCommunity;
+      const lvlText = prog.policyId ? `Lv.${1 + totalUpgrades} 已規劃` : 'Lv.1 待規劃';
+      document.getElementById('selectedZoneLevelBadge').textContent = lvlText;
+
+      document.getElementById('inspectorCategoryBadge').textContent = zone.category;
+      document.getElementById('inspectorZoneName').textContent = zone.name;
+      document.getElementById('inspectorZoneDesc').textContent = zone.baseDesc;
+
+      // 8 大城區快速跳轉按鈕
+      const container = document.getElementById('zoneQuickButtons');
+      container.innerHTML = '';
+      CITY_ZONES.forEach(z => {
+        const zp = gameState.zoneProgress[z.id];
+        const isCurrent = z.id === gameState.currentZoneId;
+        const isDone = Boolean(zp && zp.policyId);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `px-2.5 py-1.5 rounded-xl text-left text-[11px] font-semibold border transition flex items-center justify-between gap-1 ${
+          isCurrent
+            ? 'bg-sky-600/30 border-sky-400 text-white shadow'
+            : isDone
+              ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/40'
+              : 'bg-slate-950/70 border-slate-800 text-slate-300 hover:bg-slate-800'
+        }`;
+        btn.innerHTML = `
+          <span class="truncate">${z.id + 1}. ${z.shortName}</span>
+          <span class="shrink-0 text-[10px]">${isDone ? '✓' : '○'}</span>
+        `;
+        btn.addEventListener('click', () => selectCityZone(z.id, true));
+        container.appendChild(btn);
+      });
+    }
+
+    function renderDecisionPanel() {
+      const zone = CITY_ZONES[gameState.currentZoneId];
+      const prog = gameState.zoneProgress[zone.id];
+      if (!zone || !prog) return;
+
+      document.getElementById('roundCategoryTag').textContent = `第 ${zone.id + 1} / 8 區・${zone.category}`;
+      document.getElementById('roundTargetZoneTag').textContent = `📍 ${zone.shortName}`;
+      document.getElementById('roundTitle').textContent = zone.roundTitle;
+      document.getElementById('roundStatHighlight').textContent = zone.statHighlight;
+      document.getElementById('roundScenarioText').textContent = zone.scenario;
+
+      const doneBadge = document.getElementById('roundDoneBadge');
+      if (prog.policyId && prog.quizAnswered) {
+        doneBadge.classList.remove('hidden');
+      } else {
+        doneBadge.classList.add('hidden');
+      }
+
+      // 渲染步驟 1：政策方案
+      const policyContainer = document.getElementById('policyOptionsContainer');
+      policyContainer.innerHTML = '';
+      zone.options.forEach(opt => {
+        const isChosen = prog.policyId === opt.id;
+        const card = document.createElement('div');
+        card.className = `p-3 rounded-xl border transition ${
+          isChosen
+            ? 'bg-sky-950/80 border-sky-400 shadow-md'
+            : prog.policyId
+              ? 'bg-slate-950/40 border-slate-800/60 opacity-65'
+              : 'bg-slate-950/90 border-slate-800 hover:border-sky-500/60 cursor-pointer'
+        }`;
+
+        const fmtEffect = (label, val) => {
+          if (!val) return '';
+          const cls = val > 0 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+          return `<span class="text-[10px] px-1.5 py-0.5 rounded border ${cls}">${label} ${val > 0 ? '+' + val : val}</span>`;
+        };
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div class="font-bold text-xs sm:text-sm text-white">${opt.title}</div>
+            <span class="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+              ${opt.cost >= 0 ? '預算 -' + opt.cost + '億' : '收入 +' + Math.abs(opt.cost) + '億'}
+            </span>
+          </div>
+          <p class="text-xs text-slate-300 mt-1 leading-relaxed">${opt.desc}</p>
+          <div class="flex flex-wrap items-center justify-between gap-2 mt-2 pt-2 border-t border-slate-800/80">
+            <div class="flex flex-wrap items-center gap-1">
+              ${fmtEffect('基建', opt.effects.infra)}
+              ${fmtEffect('信任', opt.effects.trust)}
+              ${fmtEffect('共融', opt.effects.inclusion)}
+              ${fmtEffect('經濟', opt.effects.economy)}
+            </div>
+            ${
+              !prog.policyId
+                ? `<button type="button" data-policy-id="${opt.id}" class="btn-choose-policy px-3 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-xs font-bold text-white transition">執行此方案</button>`
+                : isChosen
+                  ? `<span class="text-xs font-bold text-sky-300">✓ 已執行方案</span>`
+                  : ''
+            }
+          </div>
+        `;
+
+        if (!prog.policyId) {
+          card.addEventListener('click', () => handleChoosePolicy(zone.id, opt.id));
+        }
+        policyContainer.appendChild(card);
+      });
+
+      // 渲染步驟 2：公民科優勢與障礙診斷題
+      const step2Box = document.getElementById('step2QuizBox');
+      const quizOptionsContainer = document.getElementById('quizOptionsContainer');
+      const feedbackBox = document.getElementById('roundFeedbackBox');
+
+      if (!prog.policyId) {
+        step2Box.classList.add('hidden');
+        feedbackBox.classList.add('hidden');
+      } else {
+        step2Box.classList.remove('hidden');
+        document.getElementById('quizQuestionText').textContent = zone.quiz.question;
+        quizOptionsContainer.innerHTML = '';
+
+        zone.quiz.choices.forEach((ch, idx) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          let btnCls = 'w-full text-left p-2.5 rounded-xl border text-xs font-medium transition ';
+          if (!prog.quizAnswered) {
+            btnCls += 'bg-slate-900 hover:bg-indigo-900/60 border-slate-700 hover:border-indigo-400 text-slate-100';
+          } else if (ch.correct) {
+            btnCls += 'bg-emerald-950/80 border-emerald-400 text-emerald-200 font-bold';
+          } else {
+            btnCls += 'bg-slate-900/50 border-slate-800 text-slate-400 opacity-70';
+          }
+          btn.className = btnCls;
+          btn.innerHTML = `${prog.quizAnswered ? (ch.correct ? '✅ ' : '• ') : ''}${ch.text}`;
+          if (!prog.quizAnswered) {
+            btn.addEventListener('click', () => handleAnswerQuiz(zone.id, idx));
+          }
+          quizOptionsContainer.appendChild(btn);
+        });
+
+        if (prog.quizAnswered) {
+          feedbackBox.classList.remove('hidden');
+          const chosenOpt = zone.options.find(o => o.id === prog.policyId);
+          document.getElementById('feedbackHeaderBadge').textContent = prog.quizCorrect
+            ? '🎉 概念診斷正確！（+12.5 分）'
+            : '💡 概念溫習提示（已記錄正確解析）';
+          document.getElementById('feedbackSourceLink').innerHTML = `<a href="${zone.quiz.sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:underline">🔗 來源：${zone.quiz.sourceTitle}</a>`;
+          document.getElementById('feedbackExplanationText').innerHTML = `
+            <div class="mb-1.5 text-sky-200"><strong>建設成效：</strong>${chosenOpt ? chosenOpt.feedback : ''}</div>
+            <div class="text-emerald-200"><strong>導學案解析：</strong>${zone.quiz.explanation}</div>
+          `;
+        } else {
+          feedbackBox.classList.add('hidden');
+        }
+      }
+
+      // 渲染底部議題圓點 Stepper
+      const stepper = document.getElementById('roundStepperDots');
+      stepper.innerHTML = '';
+      CITY_ZONES.forEach(z => {
+        const zp = gameState.zoneProgress[z.id];
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        const isCur = z.id === gameState.currentZoneId;
+        const isDone = Boolean(zp && zp.policyId && zp.quizAnswered);
+        dot.className = `w-6 h-6 rounded-lg text-[11px] font-bold transition ${
+          isCur
+            ? 'bg-sky-500 text-white ring-2 ring-sky-300'
+            : isDone
+              ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/40'
+              : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+        }`;
+        dot.textContent = `${z.id + 1}`;
+        dot.addEventListener('click', () => selectCityZone(z.id, true));
+        stepper.appendChild(dot);
+      });
+    }
+
+    function handleChoosePolicy(zoneId, policyId) {
+      const zone = CITY_ZONES[zoneId];
+      const prog = gameState.zoneProgress[zoneId];
+      if (!zone || !prog || prog.policyId) return;
+
+      const opt = zone.options.find(o => o.id === policyId);
+      if (!opt) return;
+
+      SoundFX.build();
+      prog.policyId = policyId;
+      prog.upgradeLevel += 1;
+
+      gameState.budget -= opt.cost;
+      gameState.infra += opt.effects.infra;
+      gameState.trust += opt.effects.trust;
+      gameState.inclusion += opt.effects.inclusion;
+      gameState.economy += opt.effects.economy;
+
+      refreshZone3DUpgrades(zoneId);
+      updateZoneHtmlMarkersContent();
+      renderHudMetrics();
+      renderZoneInspector();
+      renderDecisionPanel();
+      renderComparisonTab();
+      saveGameState();
+
+      showToast(`🏗️ 已於【${zone.shortName}】執行「${opt.title}」！請完成下方步驟 2 優勢／障礙概念診斷。`);
+    }
+
+    function handleAnswerQuiz(zoneId, choiceIdx) {
+      const zone = CITY_ZONES[zoneId];
+      const prog = gameState.zoneProgress[zoneId];
+      if (!zone || !prog || prog.quizAnswered) return;
+
+      const choice = zone.quiz.choices[choiceIdx];
+      prog.quizAnswered = true;
+      prog.quizCorrect = Boolean(choice && choice.correct);
+
+      if (prog.quizCorrect) {
+        SoundFX.correct();
+        gameState.quizScore = Math.min(100, gameState.quizScore + 12.5);
+        // 答對額外獎勵各指標 +1
+        gameState.infra += 1;
+        gameState.trust += 1;
+        gameState.inclusion += 1;
+        gameState.economy += 1;
+      } else {
+        SoundFX.wrong();
+      }
+
+      const chosenOpt = zone.options.find(o => o.id === prog.policyId);
+      gameState.logs.unshift({
+        zoneId: zone.id,
+        zoneName: zone.name,
+        category: zone.category,
+        policyTitle: chosenOpt ? chosenOpt.title : '',
+        policyFeedback: chosenOpt ? chosenOpt.feedback : '',
+        quizCorrect: prog.quizCorrect,
+        explanation: zone.quiz.explanation,
+        sourceUrl: zone.quiz.sourceUrl,
+        sourceTitle: zone.quiz.sourceTitle
+      });
+
+      renderHudMetrics();
+      renderDecisionPanel();
+      renderDecisionLogTab();
+      renderComparisonTab();
+      saveGameState();
+
+      // 檢查是否已完成全部 8 個區域
+      const allDone = Object.values(gameState.zoneProgress).every(p => p && p.policyId && p.quizAnswered);
+      if (allDone) {
+        SoundFX.fanfare();
+        showToast('🎉 恭喜！你已完成全港 8 大智慧城市城區規劃！可點擊查看總結評估報告。');
+      }
+    }
+
+    // 自主增建 3D 設施按鈕處理
+    function handleExtraBuild(type) {
+      const zoneId = gameState.currentZoneId;
+      const zone = CITY_ZONES[zoneId];
+      const prog = gameState.zoneProgress[zoneId];
+      if (!zone || !prog) return;
+
+      if (type === '5G') {
+        if (gameState.budget < 6) {
+          SoundFX.wrong();
+          showToast('⚠️ 創科財政儲備不足 6 億港元！');
+          return;
+        }
+        if (prog.extra5G >= 3) {
+          showToast('ℹ️ 此城區的 5G 基站密度已達上限（99% 覆蓋率）！');
+          return;
+        }
+        SoundFX.build();
+        gameState.budget -= 6;
+        gameState.infra += 4;
+        prog.extra5G += 1;
+        showToast(`📡 已於【${zone.shortName}】增設高速 5G 基站（智慧基建度 +4）！`);
+      } else if (type === 'PRIVACY') {
+        if (gameState.budget < 8) {
+          SoundFX.wrong();
+          showToast('⚠️ 創科財政儲備不足 8 億港元！');
+          return;
+        }
+        if (prog.extraPrivacy >= 2) {
+          showToast('ℹ️ 此城區已部署最高級別數據加密與透明審計護盾！');
+          return;
+        }
+        SoundFX.build();
+        gameState.budget -= 8;
+        gameState.trust += 5;
+        prog.extraPrivacy += 1;
+        showToast(`🔒 已於【${zone.shortName}】部署數據加密與透明審計（市民信任 +5）！`);
+      } else if (type === 'COMMUNITY') {
+        if (gameState.budget < 7) {
+          SoundFX.wrong();
+          showToast('⚠️ 創科財政儲備不足 7 億港元！');
+          return;
+        }
+        if (prog.extraCommunity >= 3) {
+          showToast('ℹ️ 此城區的社區數碼共融站數量已充足！');
+          return;
+        }
+        SoundFX.build();
+        gameState.budget -= 7;
+        gameState.inclusion += 5;
+        prog.extraCommunity += 1;
+        showToast(`👵 已於【${zone.shortName}】增設社區數碼共融站（社會共融 +5）！`);
+      }
+
+      refreshZone3DUpgrades(zoneId);
+      renderHudMetrics();
+      renderZoneInspector();
+      renderComparisonTab();
+      saveGameState();
+    }
+
+    function renderDecisionLogTab() {
+      const container = document.getElementById('decisionLogContainer');
+      if (!container) return;
+
+      if (gameState.logs.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 text-center bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-slate-400">
+            尚無決策紀錄。請在「🎯 規劃決策」分頁選擇建設方案並完成優勢／障礙診斷！
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = gameState.logs.map((item, idx) => `
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-bold text-sky-300">#${gameState.logs.length - idx}・${item.zoneName}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+              item.quizCorrect ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+            }">
+              ${item.quizCorrect ? '診斷正確 +12.5' : '已溫習解析'}
+            </span>
+          </div>
+          <div class="text-white font-semibold">執行方案：${item.policyTitle}</div>
+          <p class="text-slate-300 leading-relaxed">${item.policyFeedback}</p>
+          <div class="p-2 rounded-lg bg-slate-900/90 border border-slate-800 text-emerald-200 leading-relaxed">
+            ${item.explanation}
+          </div>
+          <div class="text-right">
+            <a href="${item.sourceUrl}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-sky-400 hover:underline">🔗 參考資料：${item.sourceTitle}</a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderComparisonTab() {
+      const container = document.getElementById('compareTableContainer');
+      if (!container) return;
+
+      container.innerHTML = HK_SG_COMPARISON.map(row => {
+        const currentVal = row.dynamicFn(gameState);
+        return `
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="font-bold text-white">${row.metric}</span>
+              <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">${row.category}</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center pt-1">
+              <div class="p-1.5 rounded-lg bg-slate-900 border border-slate-800">
+                <div class="text-[10px] text-slate-400">香港 (2021基準)</div>
+                <div class="font-bold text-amber-300 mt-0.5">${row.hk2021}</div>
+              </div>
+              <div class="p-1.5 rounded-lg bg-sky-950/60 border border-sky-500/40">
+                <div class="text-[10px] text-sky-300">香港 (你的規劃)</div>
+                <div class="font-extrabold text-white mt-0.5">${currentVal}</div>
+              </div>
+              <div class="p-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30">
+                <div class="text-[10px] text-emerald-300">新加坡 (2021基準)</div>
+                <div class="font-bold text-emerald-300 mt-0.5">${row.sg2021}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderEncyclopediaTab() {
+      const container = document.getElementById('encyclopediaContent');
+      if (!container) return;
+
+      document.querySelectorAll('.encyc-subtab').forEach(btn => {
+        const isAct = btn.getAttribute('data-encyc-tab') === gameState.encycTab;
+        btn.className = `encyc-subtab px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${
+          isAct ? 'bg-sky-600 text-white shadow' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+        }`;
+      });
+
+      if (gameState.encycTab === 'advantages') {
+        container.innerHTML = `
+          <div class="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/40 space-y-2">
+            <h4 class="text-sm font-extrabold text-emerald-300">🌟 優勢（1）：具備先進的智慧基礎建設（導學案頁 8-9）</h4>
+            <ul class="list-disc list-inside space-y-1.5 text-slate-200">
+              <li><strong>高速 5G 全面覆蓋：</strong>香港自 2020 年 4 月推出 5G 商用服務後，現時 5G 覆蓋已逾香港九成人口，在核心商業區的覆蓋率更達 99%，5G 用戶達 650 多萬人。國際調查機構報告指香港的 5G 可用率於亞太及歐洲地區排行名列第一。</li>
+              <li><strong>重要性：</strong>提供大量、可靠、穩定、快速（低延遲）的數據傳輸能力，廣泛應用於智慧出行（支援港鐵、公共交通、實時交通監察）、公共設施及市民日常體驗（遙距工作、遙距醫療）。</li>
+              <li><strong>多功能智慧燈柱試驗計劃：</strong>在全港人流車流較多的四個地點安裝超過 400 支多功能智慧燈柱，實時收集空氣質素、道路車流等城市數據，幫助政府和企業做出更具針對性和有效性的決策，提升城市運行效率。</li>
+              <li><strong>數據中心與 AI 超算中心：</strong>政府已在新田科技城預留土地發展商業及政府數據中心；數碼港正籌備建立人工智能超算中心，最快可在 2026 年提供每秒浮點運算 3000 千萬億次 (PFLOPS) 的算力，滿足中長期超算服務要求。</li>
+            </ul>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-sky-950/30 border border-sky-500/40 space-y-2">
+            <h4 class="text-sm font-extrabold text-sky-300">🌟 優勢（2）：政府牽頭優先推動和實踐智慧轉型（導學案頁 8-9）</h4>
+            <ul class="list-disc list-inside space-y-1.5 text-slate-200">
+              <li><strong>公共服務全面電子化與「一網通辦」：</strong>各局/部門已完成於 2024 年中或以前政府服務全面電子化的目標；並推動在 2025 年年底前全面採用「智方便」，提供一站式電子服務選項，實現「一網通辦」及促進部門間數據互通。</li>
+              <li><strong>融入市民日常生活：</strong>推動「智方便」、「醫健通」等，減少公共服務處理時間、不再受限於政府辦公時間、實現即時提交和審核電子申請，加快引領市民接受、適應和嚮應社會的數碼化轉型。</li>
+              <li><strong>優化公共服務的數字政府方案：</strong>（1）運用 AI 及聊天機械人改善政府熱線；（2）「資料一站通」(data.gov.hk) 提供約 5400 個由 79 個政府部門及 39 個公營機構開放的數據集（涵蓋 19 個類別，包括氣象實時數據、數碼地圖、專營巴士/小巴/港鐵實時到站數據）供各界免費試用；（3）利用區塊鏈技術支援電子發證及驗證證書或牌照。</li>
+              <li><strong>帶動業界與地方經濟：</strong>為業界提供智慧範式，加快數碼化轉型；數字化和智慧化的公共服務體系能吸引科技公司和創新企業進入市場，促進地方經濟繁榮。</li>
+            </ul>
+          </div>
+        `;
+      } else if (gameState.encycTab === 'obstacles') {
+        container.innerHTML = `
+          <div class="p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 space-y-2">
+            <h4 class="text-sm font-extrabold text-amber-300">🚧 障礙（1）：社會嚮應及適應程度較慢 / 社會對數碼轉型適應滯後（導學案頁 10-11）</h4>
+            <ul class="list-disc list-inside space-y-1.5 text-slate-200">
+              <li><strong>數碼鴻溝（Digital Divide）：</strong>年長及低收入群體可能缺乏必要的技術知識或資源。統計顯示：個人對數字技能的應用欠自信在 <strong>65 歲以下佔 30%，65 歲或以上高達 50%</strong>；<strong>低收入家庭無法接入穩定的網絡服務約佔低收入家庭數量的 18%</strong>。長者習慣傳統生活方式，對智能化服務感到不適應。</li>
+              <li><strong>數碼娛樂型／消閑型用戶：</strong>香港仍有不少主要使用智能電話或數碼資源進行娛樂活動（如社交媒體、遊戲、視頻觀看等），而不是用於工作或其他生活功能性應用。</li>
+              <li><strong>參與及使用率偏低統計：</strong>智慧城市政策諮詢活動的平均參與率僅約佔整體人口的 <strong>0.00004%</strong>；香港智慧交通總下載量約 300,000 次、政府一站式服務應用約 150,000 次；<strong>智慧城市相關應用的整體活躍用戶數量僅約佔整體人口的 20%</strong>。</li>
+            </ul>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-rose-950/30 border border-rose-500/40 space-y-2">
+            <h4 class="text-sm font-extrabold text-rose-300">🚧 障礙（2）：數據隱私和安全疑慮（導學案頁 10-11）</h4>
+            <ul class="list-disc list-inside space-y-1.5 text-slate-200">
+              <li><strong>監控技術與行蹤憂慮：</strong>約 <strong>62%</strong> 的香港市民對智慧城市中的監控技術（如人臉識別系統）表示擔憂；2019 年「多功能智慧燈柱」計劃曾引發廣泛社會關注和抗議。</li>
+              <li><strong>交通定位與醫療數據庫安全憂慮：</strong>不少市民對智慧交通系統提供或開放 GPS 定位數據感到憂慮；在推廣電子健康記錄系統（醫健通）中，<strong>超過 50%</strong> 受訪者擔心數據庫的安全度及健康信息被未經授權第三方訪問。</li>
+              <li><strong>社交媒體數據與智能家居黑客風險：</strong>市民對政府在社交媒體收集反饋數據如何使用感到不安；約 <strong>54%</strong> 市民擔心智能家居技術被黑客入侵。</li>
+              <li><strong>引發信任危機：</strong>個人數據如何使用、存儲和共享缺乏透明度，且數據集中存儲令駭客攻擊與外洩風險增大，令市民產生信任危機，削弱其參與度（如提供數據）及使用意願。</li>
+            </ul>
+          </div>
+        `;
+      } else if (gameState.encycTab === 'sixareas') {
+        container.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="font-bold text-sky-300">📌 《香港智慧城市藍圖》（2017年12月，76項措施）及《藍圖 2.0》（2020年12月，超過130項措施）六大範疇（導學案頁 6）：</div>
+            <div class="grid grid-cols-1 gap-2">
+              <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <span class="font-bold text-amber-300">1. 智慧出行：</span>
+                <p class="text-slate-200 mt-0.5">• 智能運輸系統及交通管理：香港出行易、收費隧道不停車繳費系統<br>• 公共運輸交匯處／巴士站及泊車：巴士服務實時資訊顯示屏</p>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <span class="font-bold text-rose-300">2. 智慧生活：</span>
+                <p class="text-slate-200 mt-0.5">• 支援醫療服務：電子健康紀錄互通系統（醫健通）<br>• 數碼支付：於公眾街市推廣使用非接觸式付款</p>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <span class="font-bold text-emerald-300">3. 智慧環境：</span>
+                <p class="text-slate-200 mt-0.5">• 綠色及智慧建築和能源效益：公共照明（LED）、私人住宅樓宇停車場安裝電動車充電設施<br>• 污染監測：遙測感應裝置（空氣污染）、無人船隻（水塘水質污染）</p>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <span class="font-bold text-yellow-300">4. 智慧市民：</span>
+                <p class="text-slate-200 mt-0.5">• 培育青年人才：學校 IT 創新實驗室計劃<br>• 創新及創業文化：為青年創業家和初創企業提供財政和非財政支援</p>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <span class="font-bold text-sky-300">5. 智慧政府：</span>
+                <p class="text-slate-200 mt-0.5">• 科技應用：運用射頻識別追蹤系統（RFID）及物聯網簡化危險藥物的處理、補給及採購程序<br>• 智慧城市基礎建設：5G 發展、採用「智方便」平台、智慧型燈柱試驗計劃</p>
+              </div>
+              <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <span class="font-bold text-purple-300">6. 智慧經濟：</span>
+                <p class="text-slate-200 mt-0.5">• 金融科技：網上虛擬銀行、「銀行易」、「積金易」平台<br>• 智慧旅遊：城市景昔、提供大澳旅遊熱點人流的資訊</p>
+              </div>
+            </div>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <h4 class="font-extrabold text-sky-300 text-sm">🌐 資訊科技三大特徵、Web 3.0、大數據 4V 與數字孿生（導學案頁 2-5）</h4>
+            <p class="text-slate-200">• <strong>三大特徵：</strong>訊息化（促進資訊交流、訊息共用）、數據化（透過大數據分析作出更合適決策）、智能化（資料自動化、實現人工智能化）。</p>
+            <p class="text-slate-200">• <strong>Web 3.0：</strong>智能互聯網（萬物互聯），利用人工智能進行語意分析（包括情緒和意圖），提供更多元及準確的搜尋結果。</p>
+            <p class="text-slate-200">• <strong>大數據 4V：</strong>Volume（資料量大）、Variety（資料多樣性：照片、文字、聲音、影片、超連結）、Velocity（資料即時性）、Veracity（資料真實性）。</p>
+            <p class="text-slate-200">• <strong>數字孿生城市 (Digital Twin City)：</strong>從實體城市蒐集數據（人口、氣象、耗電、消費、出行等）→ 建構數字孿生城市 → 精細化管理（有效分配資源、解決社會問題、啟發創新，如模擬每月 535 萬人次北上及流失 40 億元消費額）。</p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/40 space-y-2">
+            <h4 class="font-extrabold text-indigo-300 text-sm">🛡️ 青年人須具備的三大範疇資訊素養（導學案頁 12-13）</h4>
+            <p class="text-slate-200">• <strong>範疇（1）辨識與評估資訊：</strong>認清假資訊 (Fake News) 與 Deepfake 影音詐騙（應進行多重驗證，不輕信單一來源）及演算法「資訊繭房」（同溫層，應主動搜尋權威資訊）。評估法則：檢視資訊來源<strong>權威性</strong>、發布時間、客觀數據支持，並進行<strong>交叉比對</strong>。</p>
+            <p class="text-slate-200">• <strong>範疇（2）法律規範與個人責任（守法意識）：</strong>私隱與數據安全（認識《個人資料（私隱）條例》）、智慧財產權（尊重版權）、國家與網絡安全（了解《網絡安全法》、《數據安全法》及本地法律）。</p>
+            <p class="text-slate-200">• <strong>範疇（3）數字公民道德與網絡倫理：</strong>拒絕網絡欺凌、做負責任的發布者（恪守「先求證、後轉發」原則）、科技向善（關懷社會及幫助弱勢社群）。</p>
+          </div>
+        `;
+      }
+    }
+
+    function openFinalReportModal() {
+      SoundFX.fanfare();
+      const modal = document.getElementById('finalReportModal');
+      if (!modal) return;
+
+      const totalIndex = Math.round((gameState.infra + gameState.trust + gameState.inclusion + gameState.economy) / 4);
+      const completedCount = Object.values(gameState.zoneProgress).filter(p => p && p.policyId).length;
+      const simRank = Math.max(1, Math.round(41 - Math.max(0, totalIndex - 46) * 0.85));
+
+      let grade = 'B 級・穩步發展智慧城市';
+      if (totalIndex >= 78 && gameState.quizScore >= 75) grade = 'S 級・國際頂尖智慧共融都會';
+      else if (totalIndex >= 68) grade = 'A 級・軟硬兼備智慧城市';
+
+      document.getElementById('finalBadgeRank').textContent = `總評級：${grade}（模擬 IMD 排名：第 ${simRank} 位）`;
+      document.getElementById('finalPlayerSubtitle').textContent = `總規劃師：${gameState.playerName || '香港規劃師'}${gameState.playerClass ? '（' + gameState.playerClass + '）' : ''}｜已完成城區：${completedCount} / 8｜公民科概念得分：${gameState.quizScore} / 100`;
+
+      document.getElementById('finalMetricsSummary').innerHTML = `
+        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center">
+          <div class="text-[11px] text-slate-400">📡 智慧基建度</div>
+          <div class="text-lg font-black text-sky-400 mt-0.5">${gameState.infra}</div>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center">
+          <div class="text-[11px] text-slate-400">🛡️ 市民信任度</div>
+          <div class="text-lg font-black text-emerald-400 mt-0.5">${gameState.trust}</div>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center">
+          <div class="text-[11px] text-slate-400">🤝 社會共融度</div>
+          <div class="text-lg font-black text-amber-400 mt-0.5">${gameState.inclusion}</div>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-center">
+          <div class="text-[11px] text-slate-400">🚀 創科經濟力</div>
+          <div class="text-lg font-black text-purple-400 mt-0.5">${gameState.economy}</div>
+        </div>
+        <div class="p-3 rounded-2xl bg-sky-950/60 border border-sky-500/40 text-center col-span-2 sm:col-span-1">
+          <div class="text-[11px] text-sky-300">🎓 概念掌握分</div>
+          <div class="text-lg font-black text-white mt-0.5">${gameState.quizScore} 分</div>
+        </div>
+      `;
+
+      modal.classList.remove('hidden');
+    }
+
+    function copyReportToClipboard() {
+      const totalIndex = Math.round((gameState.infra + gameState.trust + gameState.inclusion + gameState.economy) / 4);
+      const completedCount = Object.values(gameState.zoneProgress).filter(p => p && p.policyId).length;
+      const lines = [
+        '【香港智慧城市規劃 (HK Smart City Planner) — 學習成績報告】',
+        `玩家姓名：${gameState.playerName || '未填寫'} ${gameState.playerClass ? '(' + gameState.playerClass + ')' : ''}`,
+        `綜合智慧城市指數：${totalIndex}/100（智慧基建 ${gameState.infra}｜市民信任 ${gameState.trust}｜社會共融 ${gameState.inclusion}｜創科經濟 ${gameState.economy}）`,
+        `已完成城區決策：${completedCount}/8｜公民科優勢與障礙診斷得分：${gameState.quizScore}/100`,
+        '--- 核心學習重點總結 ---',
+        '1. 香港智慧城市發展優勢：(1) 具備先進智慧基礎建設（5G覆蓋逾90%人口、核心區99%、400+智慧燈柱、新田科技城數據中心、數碼港AI超算中心2026年提供3000千萬億次算力）；(2) 政府牽頭優先推動和實踐智慧轉型（2024服務全面電子化、2025全面採用智方便一網通辦、資料一站通5400個開放數據集）。',
+        '2. 香港智慧城市發展障礙：(1) 社會嚮應及適應程度較慢（數碼鴻溝：65歲+ 50%欠數字技能自信、18%低收入家庭無穩定網絡、消閑型用戶為主、整體活躍用戶僅佔20%）；(2) 數據隱私和安全疑慮（62%擔憂人臉識別等監控技術、逾50%擔心醫健通數據庫安全、54%擔心智能家居黑客入侵）。'
+      ];
+      const text = lines.join('\n');
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            showToast('✅ 已複製完整學習報告至剪貼簿！');
+          }).catch(() => fallbackCopy(text));
+        } else {
+          fallbackCopy(text);
+        }
+      } catch (e) {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('✅ 已複製完整學習報告至剪貼簿！');
+      } catch (e) {
+        showToast('⚠️ 複製失敗，請手動選取文字。');
+      }
+      document.body.removeChild(ta);
+    }
+
+    function switchRightTab(tabName) {
+      SoundFX.click();
+      const tabs = ['Decision', 'Log', 'Compare', 'Encyclopedia'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tabBtn${t}`);
+        const panel = document.getElementById(`panel${t}`);
+        if (!btn || !panel) return;
+        if (t === tabName) {
+          btn.className = 'py-2 px-2 rounded-xl text-xs font-bold transition bg-sky-600 text-white shadow';
+          panel.classList.remove('hidden');
+        } else {
+          btn.className = 'py-2 px-2 rounded-xl text-xs font-bold transition text-slate-300 hover:bg-slate-800';
+          panel.classList.add('hidden');
+        }
+      });
+    }
+
+    // ==========================================
+    // 6. 初始化與事件綁定
+    // ==========================================
+    window.onload = function () {
+      const hadSaved = loadGameState();
+
+      initThreeCity();
+      CITY_ZONES.forEach(z => refreshZone3DUpgrades(z.id));
+      renderHudMetrics();
+      renderZoneInspector();
+      renderDecisionPanel();
+      renderDecisionLogTab();
+      renderComparisonTab();
+      renderEncyclopediaTab();
+
+      const welcomeModal = document.getElementById('welcomeModal');
+      if (hadSaved && gameState.started && gameState.playerName) {
+        welcomeModal.classList.add('hidden');
+      } else {
+        welcomeModal.classList.remove('hidden');
+      }
+
+      // 玩家開始按鈕
+      document.getElementById('btnStartGame').addEventListener('click', () => {
+        const nameInput = document.getElementById('inputPlayerName');
+        const classInput = document.getElementById('inputPlayerClass');
+        const err = document.getElementById('welcomeNameError');
+        const nameVal = (nameInput.value || '').trim();
+        if (!nameVal) {
+          err.classList.remove('hidden');
+          nameInput.focus();
+          SoundFX.wrong();
+          return;
+        }
+        err.classList.add('hidden');
+        gameState.playerName = nameVal;
+        gameState.playerClass = (classInput.value || '').trim();
+        gameState.started = true;
+        SoundFX.correct();
+        welcomeModal.classList.add('hidden');
+        renderHudMetrics();
+        saveGameState();
+        showToast(`👋 歡迎總規劃師 ${gameState.playerName}！請點擊 3D 城區或右側面板開始規劃香港智慧城市。`);
+      });
+
+      document.getElementById('btnDemoFill').addEventListener('click', () => {
+        document.getElementById('inputPlayerName').value = '陳大文';
+        document.getElementById('inputPlayerClass').value = '6C (01)';
+        document.getElementById('welcomeNameError').classList.add('hidden');
+      });
+
+      document.getElementById('btnOpenProfile').addEventListener('click', () => {
+        document.getElementById('inputPlayerName').value = gameState.playerName || '';
+        document.getElementById('inputPlayerClass').value = gameState.playerClass || '';
+        welcomeModal.classList.remove('hidden');
+      });
+
+      document.getElementById('btnOpenGuideModal').addEventListener('click', () => {
+        document.getElementById('inputPlayerName').value = gameState.playerName || '';
+        document.getElementById('inputPlayerClass').value = gameState.playerClass || '';
+        welcomeModal.classList.remove('hidden');
+      });
+
+      // 手機摺疊指標列
+      document.getElementById('btnToggleMobileHud').addEventListener('click', () => {
+        const bar = document.getElementById('hudMetricsBar');
+        bar.classList.toggle('hidden');
+      });
+
+      // 音效開關
+      document.getElementById('btnToggleAudio').addEventListener('click', () => {
+        SoundFX.enabled = !SoundFX.enabled;
+        document.getElementById('audioIconText').textContent = SoundFX.enabled ? '🔊 音效' : '🔇 靜音';
+        if (SoundFX.enabled) SoundFX.click();
+      });
+
+      // 重設遊戲
+      const resetAll = () => {
+        const keepName = gameState.playerName;
+        const keepClass = gameState.playerClass;
+        gameState.infra = 45;
+        gameState.trust = 48;
+        gameState.inclusion = 40;
+        gameState.economy = 50;
+        gameState.budget = 120;
+        gameState.quizScore = 0;
+        gameState.currentZoneId = 0;
+        gameState.logs = [];
+        initDefaultZoneProgress();
+        gameState.playerName = keepName;
+        gameState.playerClass = keepClass;
+        CITY_ZONES.forEach(z => refreshZone3DUpgrades(z.id));
+        updateZoneHtmlMarkersContent();
+        renderHudMetrics();
+        renderZoneInspector();
+        renderDecisionPanel();
+        renderDecisionLogTab();
+        renderComparisonTab();
+        saveGameState();
+        document.getElementById('finalReportModal').classList.add('hidden');
+        showToast('🔄 已重設所有城區規劃進度與預算！');
+      };
+
+      document.getElementById('btnResetGame').addEventListener('click', resetAll);
+      document.getElementById('btnModalRestart').addEventListener('click', resetAll);
+
+      // 數字孿生模式切換
+      document.getElementById('btnToggleDigitalTwin').addEventListener('click', () => {
+        SoundFX.click();
+        gameState.digitalTwinMode = !gameState.digitalTwinMode;
+        const banner = document.getElementById('digitalTwinBanner');
+        const dot = document.getElementById('twinDot');
+        if (gridHelper) gridHelper.visible = gameState.digitalTwinMode;
+
+        CITY_ZONES.forEach(z => {
+          const zm = zoneMeshes[z.id];
+          if (!zm) return;
+          zm.mainBuilding.traverse(ch => {
+            if (ch.isMesh && ch.material) {
+              ch.material.wireframe = gameState.digitalTwinMode;
+            }
+          });
+        });
+
+        if (gameState.digitalTwinMode) {
+          banner.classList.remove('hidden');
+          dot.className = 'w-2 h-2 rounded-full bg-sky-400 animate-ping';
+          showToast('🌐 已開啟「數字孿生城市 (Digital Twin City)」全息數據模擬視角！');
+        } else {
+          banner.classList.add('hidden');
+          dot.className = 'w-2 h-2 rounded-full bg-slate-500';
+        }
+      });
+
+      // 日夜切換
+      document.getElementById('btnToggleDayNight').addEventListener('click', () => {
+        SoundFX.click();
+        gameState.nightMode = !gameState.nightMode;
+        const txt = document.getElementById('dayNightText');
+        if (gameState.nightMode) {
+          scene.background = new THREE.Color(0x050814);
+          scene.fog = new THREE.FogExp2(0x050814, 0.01);
+          ambientLight.intensity = 0.42;
+          dirLight.intensity = 0.55;
+          txt.textContent = '☀️ 日間視角';
+        } else {
+          scene.background = new THREE.Color(0x0c192c);
+          scene.fog = new THREE.FogExp2(0x0c192c, 0.0085);
+          ambientLight.intensity = 0.78;
+          dirLight.intensity = 0.95;
+          txt.textContent = '🌙 維港夜景';
+        }
+      });
+
+      // 鏡頭控制
+      document.getElementById('btnCamOverview').addEventListener('click', () => {
+        camState.theta = 0.65;
+        camState.phi = 0.92;
+        camState.radius = 46;
+        camState.targetX = 0;
+        camState.targetZ = 0;
+        updateCameraPosition();
+      });
+      document.getElementById('btnCamZoomIn').addEventListener('click', () => {
+        camState.radius = Math.max(22, camState.radius - 5);
+        updateCameraPosition();
+      });
+      document.getElementById('btnCamZoomOut').addEventListener('click', () => {
+        camState.radius = Math.min(72, camState.radius + 5);
+        updateCameraPosition();
+      });
+
+      // 自主增建按鈕
+      document.getElementById('btnBuild5G').addEventListener('click', () => handleExtraBuild('5G'));
+      document.getElementById('btnBuildPrivacyShield').addEventListener('click', () => handleExtraBuild('PRIVACY'));
+      document.getElementById('btnBuildCommunityStation').addEventListener('click', () => handleExtraBuild('COMMUNITY'));
+
+      document.getElementById('btnFocusZoneTask').addEventListener('click', () => {
+        switchRightTab('Decision');
+      });
+
+      // 分頁按鈕
+      document.getElementById('tabBtnDecision').addEventListener('click', () => switchRightTab('Decision'));
+      document.getElementById('tabBtnLog').addEventListener('click', () => switchRightTab('Log'));
+      document.getElementById('tabBtnCompare').addEventListener('click', () => switchRightTab('Compare'));
+      document.getElementById('tabBtnEncyclopedia').addEventListener('click', () => switchRightTab('Encyclopedia'));
+
+      // 百科子分頁
+      document.querySelectorAll('.encyc-subtab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          gameState.encycTab = btn.getAttribute('data-encyc-tab');
+          renderEncyclopediaTab();
+        });
+      });
+
+      // 上一議題 / 下一議題
+      document.getElementById('btnPrevRound').addEventListener('click', () => {
+        const prevId = (gameState.currentZoneId - 1 + CITY_ZONES.length) % CITY_ZONES.length;
+        selectCityZone(prevId, true);
+      });
+
+      document.getElementById('btnNextRound').addEventListener('click', () => {
+        const allDone = Object.values(gameState.zoneProgress).every(p => p && p.policyId && p.quizAnswered);
+        if (allDone && gameState.currentZoneId === CITY_ZONES.length - 1) {
+          openFinalReportModal();
+          return;
+        }
+        // 尋找下一個未完成的城區，否則循環至下一區
+        let nextId = (gameState.currentZoneId + 1) % CITY_ZONES.length;
+        for (let i = 1; i <= CITY_ZONES.length; i++) {
+          const cand = (gameState.currentZoneId + i) % CITY_ZONES.length;
+          const p = gameState.zoneProgress[cand];
+          if (!p || !p.policyId || !p.quizAnswered) {
+            nextId = cand;
+            break;
+          }
+        }
+        selectCityZone(nextId, true);
+      });
+
+      // 總結報告 Modal 控制
+      document.getElementById('btnOpenFinalReportEarly').addEventListener('click', openFinalReportModal);
+      document.getElementById('btnCloseFinalModal').addEventListener('click', () => {
+        document.getElementById('finalReportModal').classList.add('hidden');
+      });
+      document.getElementById('btnContinueExplore3D').addEventListener('click', () => {
+        document.getElementById('finalReportModal').classList.add('hidden');
+      });
+      document.getElementById('btnCopyReportText').addEventListener('click', copyReportToClipboard);
+      document.getElementById('btnModalCopySummary').addEventListener('click', copyReportToClipboard);
+    };
+  </script>
 </body>
 </html>
-```
